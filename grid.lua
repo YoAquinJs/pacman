@@ -1,0 +1,254 @@
+Grid = {}
+
+Grid.LoadGrid = function (gameControl)
+
+    local grid = {
+        gameControl = gameControl,
+
+        tilePX = 16,
+        TILES = {},
+        tunnels = {},
+        consumables = 0,
+        blinkyGridInfo = {},
+        inkyGridInfo = {},
+        pinkyGridInfo = {},
+        clydeGridInfo = {},
+        EMPTY    = 0,
+        WALL     = 1,
+        BLOCK    = 2,
+        BISCUIT  = 3,
+        PILL     = 4,
+        TUNNEL   = 5,
+        WALKABLE = 6,
+        draw = function (self)
+            engine.graphics.setColor(1,1,1)
+            engine.graphics.circle("fill", self.ghostSpawnCenterCoordinates[1], self.ghostSpawnCenterCoordinates[2] , self.tilePX/8)
+
+            for x=1,#self.TILES do
+                for y=1,#self.TILES[x] do
+                    if self.TILES[x][y].content == self.WALL then--WALL
+                        local coordinates = self:getCoordinates(x, y)
+                        --engine.graphics.setColor(0,0,0)
+                        --engine.graphics.rectangle("fill", coordinates[1] + self.tilePX/4, coordinates[2] + self.tilePX/4, self.tilePX/2, self.tilePX/2)
+                        engine.graphics.setColor(0,0,1)
+                        if self.TILES[x][y].isThin == false then
+                            engine.graphics.rectangle("line", coordinates[1] + self.tilePX/4, coordinates[2] + self.tilePX/4, self.tilePX/2, self.tilePX/2)
+                        else
+                            engine.graphics.rectangle("line", coordinates[1] + self.tilePX/4, coordinates[2] + self.tilePX/4, self.tilePX/2, self.tilePX/2)
+                        end
+                    elseif self.TILES[x][y].content == self.BLOCK then--BLOCK
+                        local coordinates = self:getCoordinates(x, y)
+                        --engine.graphics.setColor(0,0,0)
+                        --engine.graphics.rectangle("fill", coordinates[1] , coordinates[2], self.tilePX, self.tilePX)
+                        engine.graphics.setColor(1,1,1)
+                        engine.graphics.rectangle("line", coordinates[1] , coordinates[2] + self.tilePX/4, self.tilePX, self.tilePX/2)
+                    elseif self.TILES[x][y].consumable == self.BISCUIT then--BISCUIT
+                        local coordinates = self:getCenterCoordinates(x, y)
+                        engine.graphics.setColor(1,1,1)
+                        engine.graphics.circle("fill", coordinates[1], coordinates[2] , self.tilePX/8)
+                    elseif self.TILES[x][y].consumable == self.PILL then--PILL
+                        local coordinates = self:getCenterCoordinates(x, y)
+                        engine.graphics.setColor(1,1,1)
+                        engine.graphics.circle("fill", coordinates[1], coordinates[2], self.tilePX/4)
+                    end
+                end
+            end
+        end,
+        getTile = function (self, x, y)
+            return {math.ceil(x/self.tilePX), math.ceil(y/self.tilePX)}
+        end,
+        getCoordinates = function (self, tileX, tileY)
+            return {(tileX * self.tilePX) - (self.tilePX*3), (tileY * self.tilePX) - (self.tilePX*2)}
+        end,
+        getTileContent = function (self, tileX, tileY)
+            return self.TILES[tileX][tileY].content
+        end,
+        getCenterCoordinates = function (self, tileX, tileY)
+            local upperLeftCornerPX = self:getCoordinates(tileX, tileY)
+            return {upperLeftCornerPX[1] + math.ceil(self.tilePX/2), upperLeftCornerPX[2] + math.ceil(self.tilePX/2)}
+        end,
+        consume = function (self, consumable, tileX, tileY)
+            self.consumables = self.consumables - 1
+            self.TILES[tileX][tileY].consumable = nil
+            self.gameControl.score = self.gameControl.score + 10
+
+            if self.consumables == 0 then
+                --WIN
+            end
+
+            if consumable == self.PILL then
+                self.gameControl.score = self.gameControl.score + 40 --50 per PILL
+                self.gameControl:frightenedMode()
+            end
+        end,
+        getWallRender = function (self, x, y)
+            --3 Walls
+            if self.TILES[x][y-1].content == self.WALL and self.TILES[x+1][y].content == self.WALL and self.TILES[x][y+1].content == self.WALL then return {wallType = 31, direction = 1} end
+            if self.TILES[x-1][y].content == self.WALL and self.TILES[x][y+1].content == self.WALL and self.TILES[x-1][y].content == self.WALL then return {wallType = 31, direction = 2} end
+            if self.TILES[x-1][y].content == self.WALL and self.TILES[x][y-1].content == self.WALL and self.TILES[x][y+1].content == self.WALL then return {wallType = 31, direction = 3} end
+            if self.TILES[x-1][y].content == self.WALL and self.TILES[x][y+1].content == self.WALL and self.TILES[x+1][y].content == self.WALL then return {wallType = 31, direction = 4} end
+
+            if self.TILES[x][y-1].content == self.WALL and self.TILES[x+1][y-1].content == self.WALL and self.TILES[x+1][y].content == self.WALL then return {wallType = 32, direction = 1} end
+            if self.TILES[x][y+1].content == self.WALL and self.TILES[x+1][y+1].content == self.WALL and self.TILES[x+1][y].content == self.WALL then return {wallType = 32, direction = 2} end
+            if self.TILES[x-1][y].content == self.WALL and self.TILES[x-1][y+1].content == self.WALL and self.TILES[x][y+1].content == self.WALL then return {wallType = 32, direction = 3} end
+            if self.TILES[x-1][y].content == self.WALL and self.TILES[x-1][y-1].content == self.WALL and self.TILES[x][y-1].content == self.WALL then return {wallType = 32, direction = 4} end
+
+            --2 Walls
+            if self.TILES[x-1][y].content == self.WALL and self.TILES[x+1][y].content == self.WALL then return {wallType = 21, direction = 1} end
+            if self.TILES[x][y-1].content == self.WALL and self.TILES[x][y+1].content == self.WALL then return {wallType = 21, direction = 2} end
+
+            if self.TILES[x][y-1].content == self.WALL and self.TILES[x+1][y].content == self.WALL then return {wallType = 22, direction = 1} end
+            if self.TILES[x][y+1].content == self.WALL and self.TILES[x+1][y].content == self.WALL then return {wallType = 22, direction = 2} end
+            if self.TILES[x-1][y].content == self.WALL and self.TILES[x][y+1].content == self.WALL then return {wallType = 22, direction = 3} end
+            if self.TILES[x-1][y].content == self.WALL and self.TILES[x][y-1].content == self.WALL then return {wallType = 22, direction = 4} end
+
+            --1 Wall
+            if self.TILES[x+1][y].content == self.WALL then return {wallType = 11, direction = 1} end
+            if self.TILES[x][y-1].content == self.WALL then return {wallType = 11, direction = 2} end
+            if self.TILES[x-1][y].content == self.WALL then return {wallType = 11, direction = 3} end
+            if self.TILES[x][y+1].content == self.WALL then return {wallType = 11, direction = 4} end
+        end
+    }
+
+    local mapFile = io.open("mapdata", "r")
+    assert(type(mapFile) ~= nil, "Couldnt open map file")
+
+    ---@diagnostic disable-next-line: need-check-nil
+    local mapStr = mapFile:read("a")
+    local x, y = 1, 1
+    for i = 1, #mapStr do
+        local c = mapStr:sub(i,i)
+
+        if c == "\n" then
+            x = 1
+            y = y + 1
+        end
+
+        if grid.TILES[x] == nil then
+            grid.TILES[x] = {}
+        end
+
+        if c ~= "\n" then
+            local parsedC = tonumber(c, 10)
+            if parsedC ~= nil then
+                grid.TILES[x][y] = {content=parsedC}
+                if parsedC == grid.WALL then
+                    grid.TILES[x][y].isThin = false
+                elseif parsedC == grid.BISCUIT then
+                    grid.TILES[x][y] = {content=grid.EMPTY, consumable = grid.BISCUIT, walkable = true}
+                    grid.consumables = grid.consumables + 1
+                elseif parsedC == grid.PILL then
+                    grid.TILES[x][y] = {content=grid.EMPTY, consumable = grid.PILL, walkable = true}
+                    grid.consumables = grid.consumables + 1
+                elseif parsedC == grid.TUNNEL then
+                    grid.TILES[x][y].tunnelExit={}
+                    table.insert(grid.tunnels, {x, y})
+                elseif parsedC == grid.WALKABLE then
+                    grid.TILES[x][y] = {content=grid.EMPTY, walkable = true}
+                elseif parsedC == grid.BLOCK and grid.ghostSpawnCenterCoordinates == nil and grid.ghostSpawnCenterCoordinates == nil then
+                    local blockCoordinates = grid:getCoordinates(x, y)
+                    grid.ghostSpawnCenterCoordinates = {blockCoordinates[1] + grid.tilePX - 1, blockCoordinates[2] + (grid.tilePX * 2.5)}
+                    grid.ghostSpawnEntranceCoordinates = {blockCoordinates[1] + grid.tilePX - 1, blockCoordinates[2] - (grid.tilePX/2)}
+                end
+            end
+
+            if c == "M" then --Player Grid Info
+                grid.TILES[x][y] = {content=grid.EMPTY, walkable = true}
+                local centerCoords = grid:getCenterCoordinates(x, y)
+                grid.pacmanGridInfo = {startTile={x, y}, startPosition={centerCoords[1] + (grid.tilePX/2), centerCoords[2]}}
+            elseif c == "B" then --Blinky Grid Info
+                grid.TILES[x][y] = {content=grid.EMPTY, walkable=true}
+                local centerCoords = grid:getCenterCoordinates(x, y)
+                grid.blinkyGridInfo.startTile = {x, y}
+                grid.blinkyGridInfo.startPosition = {centerCoords[1] + (grid.tilePX/2), centerCoords[2]}
+
+                grid.eatenTargetTile = {x, y}
+            elseif c == "I" then --Inky Grid Info
+                grid.TILES[x][y] = {content=grid.EMPTY}
+                local centerCoords = grid:getCenterCoordinates(x, y)
+                grid.inkyGridInfo.startTile = {x, y}
+                grid.inkyGridInfo.startPosition = {centerCoords[1] + (grid.tilePX/2), centerCoords[2]}
+            elseif c == "P" then --Pinky Grid Info
+                grid.TILES[x][y] = {content=grid.EMPTY}
+                local centerCoords = grid:getCenterCoordinates(x, y)
+                grid.pinkyGridInfo.startTile = {x, y}
+                grid.pinkyGridInfo.startPosition = {centerCoords[1] + (grid.tilePX/2), centerCoords[2]}
+            elseif c == "C" then --Clyde Grid Info
+                grid.TILES[x][y] = {content=grid.EMPTY}
+                local centerCoords = grid:getCenterCoordinates(x, y)
+                grid.clydeGridInfo.startTile = {x, y}
+                grid.clydeGridInfo.startPosition = {centerCoords[1] + (grid.tilePX/2), centerCoords[2]}
+            elseif c == "b" then --Blinky Scatter Tile
+                grid.TILES[x][y] = {content=grid.EMPTY}
+                grid.blinkyGridInfo.scatterTile = {x, y}
+            elseif c == "i" then --Inky Scatter Tile
+                grid.TILES[x][y] = {content=grid.EMPTY}
+                grid.inkyGridInfo.scatterTile = {x, y}
+            elseif c == "p" then --Pinky Scatter Tile
+                grid.TILES[x][y] = {content=grid.EMPTY}
+                grid.pinkyGridInfo.scatterTile = {x, y}
+            elseif c == "c" then --Clyde Scatter Tile
+                grid.TILES[x][y] = {content=grid.EMPTY}
+                grid.clydeGridInfo.scatterTile = {x, y}
+            elseif c == "l" then --Thin wall
+                grid.TILES[x][y] = {content=grid.WALL, isThin=true}
+            elseif c == "!" then --LIFESCOUNTER 
+                local lifesCounterCoords = grid:getCoordinates(x, y)
+                grid.gameControl.lifesCounterCoords = {lifesCounterCoords[1], lifesCounterCoords[2]}
+                grid.TILES[x][y] = {content=grid.EMPTY}
+            elseif c == "@" then --LEVELCOUNTER
+                local levelCounterCoords = grid:getCoordinates(x, y)
+                grid.gameControl.levelCounterCoords = {levelCounterCoords[1], levelCounterCoords[2]}
+                grid.TILES[x][y] = {content=grid.EMPTY}
+            elseif c == "#" then --HIGHSCORELABEL
+                local highScoreLabelCoords = grid:getCoordinates(x, y)
+                grid.gameControl.highScoreLabelCoords = {highScoreLabelCoords[1], highScoreLabelCoords[2]}
+                grid.TILES[x][y] = {content=grid.EMPTY}
+            elseif c == "$" then --HIGHSCOREVALUE
+                local highScoreValueCoords = grid:getCoordinates(x, y)
+                grid.gameControl.highScoreValueCoords = {highScoreValueCoords[1], highScoreValueCoords[2]}
+                grid.TILES[x][y] = {content=grid.EMPTY}
+            elseif c == "%" then --NAMETAG
+                local nameTagCoords = grid:getCoordinates(x, y)
+                grid.gameControl.nameTagCoords = {nameTagCoords[1], nameTagCoords[2]}
+                grid.TILES[x][y] = {content=grid.EMPTY}
+            elseif c == "^" then --SCORECOUNTER
+                local scoreCounterCoords = grid:getCoordinates(x, y)
+                grid.gameControl.scoreCounterCoords = {scoreCounterCoords[1], scoreCounterCoords[2]}
+                grid.TILES[x][y] = {content=grid.EMPTY}
+            end
+            x = x + 1
+        end
+    end
+
+    for y = 1, #grid.TILES[1] do
+        for x = 1, #grid.TILES do
+            if grid.TILES[x][y].content == grid.WALL then
+                local wallInf = grid:getWallRender(x, y)
+                grid.TILES[x][y].wallType = wallInf.wallType
+                grid.TILES[x][y].direction = wallInf.direction
+            end
+
+            if grid.TILES[x][y].walkable ~= nil then
+                if grid.TILES[x][y-1].walkable ~= nil or grid.TILES[x][y+1].walkable ~= nil then
+                    if grid.TILES[x-1][y].walkable ~= nil or grid.TILES[x+1][y].walkable ~= nil then
+                        grid.TILES[x][y].isIntersection = true
+                    end
+                elseif grid.TILES[x-1][y].walkable ~= nil or grid.TILES[x+1][y].walkable ~= nil then
+                    if grid.TILES[x][y-1].walkable ~= nil or grid.TILES[x][y+1].walkable ~= nil then
+                        grid.TILES[x][y].isIntersection = true
+                    end
+                end
+            end
+        end
+    end
+
+    io.close(mapFile)
+
+    grid.TILES[grid.tunnels[1][1]][grid.tunnels[1][2]].tunnelExit = {grid.tunnels[2][1], grid.tunnels[2][2]}
+    grid.TILES[grid.tunnels[2][1]][grid.tunnels[2][2]].tunnelExit = {grid.tunnels[1][1], grid.tunnels[1][2]}
+
+    return grid
+end
+
+return Grid
