@@ -36,9 +36,8 @@ end
 
 -- TODO
 -- Blinkin when losing and when frightened mode is close to finish
--- Gamecontrol for selecting level and play time runs
--- Start Screen
--- Sound
 -- Correct pacman movement
 -- wall sprite selection
--- Pacman eat
+-- Start Screen
+-- Gamecontrol for selecting level and play time runs
+-- Sound

@@ -11,7 +11,7 @@ spriteType = {
     "clyde"  : ("r1","r2","l1","l2","u1","u2","d1","d2"),
     "ghosts" : ("fB1","fB2","fW1","fW2","er","el","eu","ed"),
     "pacman" : ("r1","r2","l1","l2","u1","u2","d1","d2","fill","dh1","dh2","dh3","dh4","dh5","dh6","dh7","dh8","dh9","dh10","dh11"),
-    "walls"  : ("tUouB","tCsB","tChB","tkB","kUouB","kCiB","kCoB","tUouW","tCsW","tChW","tkW","kUouW","kCiW","kCoW"),
+    "walls"  : ("tUouB","tCsB","tChB","tkB","kUouB","kCiB","kCoB","tUouW","tCsW","tChW","tkW","kUouW","kCiW","kCoW", "block"),
     "props"  : ("dot","pill","cherry","strawberry","orange","apple","melon","galaxian","bell","key"),
 } 
 

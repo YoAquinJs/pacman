@@ -22,7 +22,6 @@ Grid.LoadGrid = function (gameControl)
         WALKABLE = 6,
         draw = function (self)
             engine.graphics.setColor(1,1,1)
-            engine.graphics.circle("fill", self.ghostSpawnCenterCoordinates[1], self.ghostSpawnCenterCoordinates[2] , self.tilePX/8)
 
             for x=1,#self.TILES do
                 for y=1,#self.TILES[x] do

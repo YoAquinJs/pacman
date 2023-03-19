@@ -27,7 +27,7 @@ GameControl.LoadGameControl = function (input)
         generalState=nil,
         isFrightened=false,--Define frightened start time or false for no frightened mode
         score=0,
-        currentLevel=1,
+        currentLevel=0,
         currentLevelInfo={},
         levels = {
             {
@@ -42,11 +42,15 @@ GameControl.LoadGameControl = function (input)
             },
             {
                 untilLevel = -1,
-                frightenedModeTime = 1,
+                frightenedModeTime = 1.5,
                 phases = {{"SCATTER", 5}, {"CHASE", 20}, {"SCATTER", 5}, {"CHASE", 20}, {"SCATTER", 5}, {"CHASE", -1}}
             },
         },
         startLevel = function (self, level)
+            if level == self.currentLevel then
+                engine.timer.sleep(1)
+            end
+
             for i=1, #self.levels do
                 if level <= self.levels[i].untilLevel or self.levels[i].untilLevel == -1 then
                     self.currentLevelInfo = self.levels[i]
@@ -89,7 +93,7 @@ GameControl.LoadGameControl = function (input)
         end,
         eatPacman = function (self)
             self.lifes = self.lifes - 1
-            
+
             if self.lifes < 1 then
                 --Lose
                 return
@@ -101,20 +105,17 @@ GameControl.LoadGameControl = function (input)
             self.pacman.stoped = true
             self.pacman.dying = true
             engine.timer.sleep(1)
+            self.pacman.renderSprite = "fill"
+            self.pacman.lastFrameTime = engine.timer.getTime()
+            self.pacman.frame = 0
 
             for key, _ in pairs(self.ghosts) do
-                self.ghosts[key] = nil
+                self.ghosts[key].render = false
             end
         end
     }
 
     gameControl.update = function (self, dt)
-        self.pacman:update(dt)
-
-        if self.ghosts.clyde == nil then
-            print("A")return
-        end
-
         if self.isFrightened ~= false and (engine.timer.getTime() - self.isFrightened) > self.currentLevelInfo.frightenedModeTime then
             for key, _ in pairs(self.ghosts) do
                 if self.ghosts[key].state ~= self.states.EATEN then
@@ -126,6 +127,7 @@ GameControl.LoadGameControl = function (input)
             self.pacman.ghostsEatened = 0
         end
 
+        self.pacman:update(dt)
         self.ghosts.blinky:update(dt)
         self.ghosts.clyde:update(dt)
         self.ghosts.inky:update(dt)
@@ -138,7 +140,7 @@ GameControl.LoadGameControl = function (input)
             Font.drawText(tostring(self.highscores[1][2]), self.highScoreValueCoords[1], self.highScoreValueCoords[2], 2.6, {1,1,1})
             Font.drawText(tostring(self.score), self.scoreCounterCoords[1]-(self.grid.tilePX*(#tostring(self.score))), self.scoreCounterCoords[2], 2.6, {1,1,1})
             Font.drawText(self.nameTag, self.nameTagCoords[1], self.nameTagCoords[2], 2.6, {1,1,1})
-            for i = 0, self.lifes-1 do
+            for i = 0, self.lifes-2 do
                 engine.graphics.setColor(1,1,1)
                 local img, scale = engine.graphics.newImage("sprites/pacman/r2.png"), 1.8
                 img:setFilter("nearest", "nearest")

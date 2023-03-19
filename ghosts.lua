@@ -36,7 +36,8 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
         tunnel = nil,
         stateDuration = 10,
         stateTimeBegin = 0,
-        stoped = false
+        stoped = false,
+        render = true
     }
 
     ghost.update = function (self, dt)
@@ -190,7 +191,7 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
 
 
     ghost.draw = function (self)
-        if not self.render then return end
+        if not self.render == true then return end
 
         if engine.timer.getTime() - self.loadedTime > self.startIdleTime and not self.stoped then
             if (engine.timer.getTime() - self.lastFrameTime) >= self.nextFrameTime then

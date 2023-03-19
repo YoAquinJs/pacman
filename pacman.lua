@@ -143,10 +143,26 @@ Pacman.LoadPacman = function (input, grid, gameControl)
                 self.renderSprite = "fill"
             end
         end
-        engine.graphics.setColor(1,1,1)
-        local img = engine.graphics.newImage("sprites/pacman/"..self.renderSprite..".png")
-        img:setFilter("nearest", "nearest")
-        engine.graphics.draw(img, self.position[1]-8, self.position[2]-8, 0, 1.5, 1.5)
+
+        if self.dying == true then
+            if (engine.timer.getTime() - self.lastFrameTime) >= (self.nextFrameTime*1.5) then
+                self.lastFrameTime = engine.timer.getTime()
+                self.frame = self.frame + 1
+
+                if self.frame > 13 then
+                    self.gameControl:startLevel(self.gameControl.currentLevel)
+                end
+
+                self.renderSprite = "dh"..tostring(self.frame)
+            end
+        end
+
+        if self.frame < 12 then
+            engine.graphics.setColor(1,1,1)
+            local img = engine.graphics.newImage("sprites/pacman/"..self.renderSprite..".png")
+            img:setFilter("nearest", "nearest")
+            engine.graphics.draw(img, self.position[1]-8, self.position[2]-8, 0, 1.5, 1.5)
+        end
         --engine.graphics.setColor(1,0,0)
         --local debugCoordinates = self.grid:getCoordinates(self.tile[1], self.tile[2])       
         --engine.graphics.rectangle("line", debugCoordinates[1], debugCoordinates[2], self.grid.tilePX, self.grid.tilePX)
