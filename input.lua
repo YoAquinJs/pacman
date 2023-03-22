@@ -12,6 +12,7 @@ Input.getInput = function ()
             self.left  = engine.keyboard.isDown("a")
             self.down  = engine.keyboard.isDown("s")
             self.right = engine.keyboard.isDown("d")
+            self.start = engine.keyboard.isDown("space")
         end
     }
 

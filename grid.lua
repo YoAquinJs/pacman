@@ -71,13 +71,13 @@ Grid.LoadGrid = function (gameControl)
             self.TILES[tileX][tileY].consumable = nil
             self.gameControl.score = self.gameControl.score + 10
 
-            if self.consumables == 0 then
-                --WIN
-            end
-
             if consumable == self.PILL then
                 self.gameControl.score = self.gameControl.score + 40 --50 per PILL
                 self.gameControl:frightenedMode()
+            end
+
+            if self.consumables == 0 then
+                self.gameControl:startLevel(self.gameControl.currentLevel+1)
             end
         end,
         getWallRender = function (self, x, y)
@@ -106,6 +106,34 @@ Grid.LoadGrid = function (gameControl)
             if self.TILES[x][y-1].content == self.WALL then return {wallType = 11, direction = 2} end
             if self.TILES[x-1][y].content == self.WALL then return {wallType = 11, direction = 3} end
             if self.TILES[x][y+1].content == self.WALL then return {wallType = 11, direction = 4} end
+        end,
+        reloadConsumeables = function (self)
+            self.consumables = 0
+            local mapFile = io.open("mapdata", "r")
+            assert(type(mapFile) ~= nil, "Couldnt open map file")
+
+            ---@diagnostic disable-next-line: need-check-nil
+            local mapStr = mapFile:read("a")
+            local x, y = 1, 1
+            for i = 1, #mapStr do
+                local c = mapStr:sub(i,i)
+
+                if c == "\n" then
+                    x = 1
+                    y = y + 1
+                else
+                    local parsedC = tonumber(c, 10)
+                    if parsedC == self.BISCUIT then
+                        self.TILES[x][y].consumable = self.BISCUIT
+                        self.consumables = self.consumables + 1
+                    elseif parsedC == self.PILL then
+                        self.TILES[x][y].consumable = self.PILL
+                        self.consumables = self.consumables + 1
+                    end
+
+                    x = x + 1
+                end
+            end
         end
     }
 
@@ -214,6 +242,14 @@ Grid.LoadGrid = function (gameControl)
             elseif c == "^" then --SCORECOUNTER
                 local scoreCounterCoords = grid:getCoordinates(x, y)
                 grid.gameControl.scoreCounterCoords = {scoreCounterCoords[1], scoreCounterCoords[2]}
+                grid.TILES[x][y] = {content=grid.EMPTY}
+            elseif c == "*" then --SCORECOUNTER
+                local gameOverLabel = grid:getCoordinates(x, y)
+                grid.gameControl.gameOverLabel = {gameOverLabel[1], gameOverLabel[2]}
+                grid.TILES[x][y] = {content=grid.EMPTY, walkable = true}
+            elseif c == "(" then --SCORECOUNTER
+                local pressAnyKeyLabel = grid:getCoordinates(x, y)
+                grid.gameControl.pressAnyKeyLabel = {pressAnyKeyLabel[1], pressAnyKeyLabel[2]}
                 grid.TILES[x][y] = {content=grid.EMPTY}
             end
             x = x + 1

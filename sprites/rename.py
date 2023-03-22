@@ -4,7 +4,7 @@ from sys import argv
 fileExtension = ".png"
 spriteType = {
     # r:right l:left u:up d:down  f:frightened e:eaten  B:blue W:white  t:thin k:thick Ch:sharpcorner Cs:softcorner Ci:innercorner Co:outercorner Uou:continuous  dh:death
-    "font"   : "abcdefghijklmnopqrstuvwxyz0123456789",
+    "font"   : ("a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z","0","1","2","3","4","5","6","7","8","9","slash"),
     "blinky" : ("r1","r2","l1","l2","u1","u2","d1","d2"),
     "inky"   : ("r1","r2","l1","l2","u1","u2","d1","d2"),
     "pinky"  : ("r1","r2","l1","l2","u1","u2","d1","d2"),

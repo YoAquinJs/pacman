@@ -1,21 +1,17 @@
 _G.engine = require("love")
 
 require("gamecontrol")
-require("grid")
 require("input")
-require("font")
 
 function engine.load() --On game laod
+    _G.GameControl = GameControl.LoadGameControl()
     _G.Input = Input.getInput()
-    _G.GameControl = GameControl.LoadGameControl(Input)
-    _G.Grid = Grid.LoadGrid(GameControl)
-    _G.Font = Font
-    GameControl.grid = Grid
 
     engine.graphics.setBackgroundColor(0,0,0) --window Background Color
-    engine.window.setMode(#Grid.TILES*Grid.tilePX - (Grid.tilePX*4), #Grid.TILES[1]*Grid.tilePX - Grid.tilePX, {display = 2, fullscreen=false, centered=true})
+    engine.window.setMode(#GameControl.grid.TILES*GameControl.grid.tilePX - (GameControl.grid.tilePX*4),
+    #GameControl.grid.TILES[1]*GameControl.grid.tilePX - GameControl.grid.tilePX, {display = 2, fullscreen=false, centered=true})
 
-    GameControl:startLevel(1)
+    --GameControl:startLevel(1)
 end
 
 local i = 0
@@ -29,15 +25,13 @@ function engine.update(dt) --Per Frame Logic
 
 function engine.draw() --Per Frame Graphics
     GameControl:draw()
-    if GameControl.currentLevel > 0  then
-        Grid:draw()
-    end
 end
 
 -- TODO
--- Blinkin when losing and when frightened mode is close to finish
 -- Correct pacman movement
 -- wall sprite selection
--- Start Screen
--- Gamecontrol for selecting level and play time runs
+-- Blinkin when win
 -- Sound
+-- Dificultity settings
+
+--BUGS

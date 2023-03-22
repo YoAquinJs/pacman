@@ -1,9 +1,12 @@
 require("pacman")
 require("ghosts")
+require("grid")
+require("font")
 
+_G.Font = Font
 GameControl = {}
 
-GameControl.LoadGameControl = function (input)
+GameControl.LoadGameControl = function ()
     local gameControl = {
         grid = nil,
         pacman = nil,
@@ -22,12 +25,13 @@ GameControl.LoadGameControl = function (input)
         highScoreValueCoords=nil,
         nameTagCoords=nil,
         scoreCounterCoords=nil,
-        nameTag="JOA",
-        lifes=3,
+        gameOverLabel=nil,
+        nameTag={1, {65, 65, 65, 65, 65}, 0},
+        lifes=1,
         generalState=nil,
         isFrightened=false,--Define frightened start time or false for no frightened mode
         score=0,
-        currentLevel=0,
+        currentLevel=-1,
         currentLevelInfo={},
         levels = {
             {
@@ -46,9 +50,17 @@ GameControl.LoadGameControl = function (input)
                 phases = {{"SCATTER", 5}, {"CHASE", 20}, {"SCATTER", 5}, {"CHASE", 20}, {"SCATTER", 5}, {"CHASE", -1}}
             },
         },
-        startLevel = function (self, level)
-            if level == self.currentLevel then
-                engine.timer.sleep(1)
+        startLevel = function (self, level, died)
+            engine.timer.sleep(1)
+
+            if level == 1 and died == false then
+                self.score = 0
+                self.lifes = 3
+                self.grid:reloadConsumeables()
+            else
+                if level == self.currentLevel + 1 then
+                    self.grid:reloadConsumeables()
+                end
             end
 
             for i=1, #self.levels do
@@ -58,13 +70,16 @@ GameControl.LoadGameControl = function (input)
                 end
             end::exitLevelInfoSelector::
 
-            self.pacman = Pacman.LoadPacman(input, self.grid, self)
+            self.pacman = Pacman.LoadPacman(self.grid, self)
             local GhostsObjs = Ghosts:LoadGhosts(self.grid, self, self.pacman)
             self.ghosts = GhostsObjs
             self.states = Ghosts.states
             self.generalState = Ghosts.states.CHASE
             self.pacman.ghosts = GhostsObjs
             self.pacman.states = Ghosts.states
+            for key, _ in pairs(self.ghosts) do
+                self.ghosts[key].state = self.generalState
+            end
 
             self.currentLevel = level
         end,
@@ -73,6 +88,7 @@ GameControl.LoadGameControl = function (input)
 
             for key, _ in pairs(self.ghosts) do
                 self.ghosts[key].state = self.states.FRIGHTENED
+                self.ghosts[key].nextFrameTime = 0.199
             end
 
             self.pacman.ghostsEatened = 1
@@ -83,6 +99,7 @@ GameControl.LoadGameControl = function (input)
 
             for i, value in ipairs(self.highscores) do
                 if i > self.maxHighscores then
+                    table.remove(self.highscores, i)
                     goto exitHighscoreSelector
                 end
 
@@ -91,13 +108,11 @@ GameControl.LoadGameControl = function (input)
 
             engine.filesystem.write(self.savingsFile, formattedValues:sub(1, #formattedValues - 1))
         end,
+        getNameTag = function (self)
+            return string.char(self.nameTag[2][1], self.nameTag[2][2], self.nameTag[2][3], self.nameTag[2][4], self.nameTag[2][5])
+        end,
         eatPacman = function (self)
             self.lifes = self.lifes - 1
-
-            if self.lifes < 1 then
-                --Lose
-                return
-            end
 
             for key, _ in pairs(self.ghosts) do
                 self.ghosts[key].stoped = true
@@ -106,40 +121,99 @@ GameControl.LoadGameControl = function (input)
             self.pacman.dying = true
             engine.timer.sleep(1)
             self.pacman.renderSprite = "fill"
-            self.pacman.lastFrameTime = engine.timer.getTime()
             self.pacman.frame = 0
+            self.pacman.lastFrameTime = engine.timer.getTime()
 
             for key, _ in pairs(self.ghosts) do
                 self.ghosts[key].render = false
             end
+        end,
+        pacmanDie = function (self)
+            if self.lifes == 0 then
+                self.deathTime = engine.timer.getTime()
+                self.currentLevel = 0
+                print(self.score)
+                table.insert(self.highscores, {self:getNameTag(), self.score})
+                self:serializeScores()
+                return
+            end
+            self:startLevel(self.currentLevel, true)
+        end,
+        eatGhost = function (self, key, ghostsEatened)
+            self.ghosts[key].state = self.states.EATEN
+            self.ghosts[key].nextFrameTime = 0.15
+            self.score = self.score + (200 * ghostsEatened)
         end
     }
 
+    gameControl.grid =  Grid.LoadGrid(gameControl)
+
     gameControl.update = function (self, dt)
-        if self.isFrightened ~= false and (engine.timer.getTime() - self.isFrightened) > self.currentLevelInfo.frightenedModeTime then
-            for key, _ in pairs(self.ghosts) do
-                if self.ghosts[key].state ~= self.states.EATEN then
-                    self.ghosts[key].state = self.generalState
+        if self.currentLevel > 0 then
+            -- Check for iterating between SCATTER and CHASE
+            if self.isFrightened ~= false and (engine.timer.getTime() - self.isFrightened) > self.currentLevelInfo.frightenedModeTime then
+                for key, _ in pairs(self.ghosts) do
+                    if self.ghosts[key].state ~= self.states.EATEN then
+                        self.ghosts[key].state = self.generalState
+                        self.ghosts[key].nextFrameTime = 0.15
+                    end
+                end
+
+                self.isFrightened = false
+                self.pacman.ghostsEatened = 0
+            end
+
+            self.pacman:update(dt)
+            self.ghosts.blinky:update(dt)
+            self.ghosts.clyde:update(dt)
+            self.ghosts.inky:update(dt)
+            self.ghosts.pinky:update(dt)
+        elseif self.currentLevel == 0 then
+            if Input.right == true or Input.left == true or Input.up == true or Input.down == true or Input.start == true then
+                self.currentLevel = -1
+            end
+        else
+            if engine.timer.getTime() - self.nameTag[3] > 0.1 then
+                if Input.left then
+                    self.nameTag[1] = self.nameTag[1] - 1
+                    if self.nameTag[1] == 0 then self.nameTag[1] = #self.nameTag[2] end
+                    self.nameTag[3] = engine.timer.getTime()
+                elseif Input.right then
+                    self.nameTag[1] = self.nameTag[1] + 1
+                    if self.nameTag[1] == #self.nameTag[2]+1 then self.nameTag[1] = 0 end
+                    self.nameTag[3] = engine.timer.getTime()
+                elseif Input.up then
+                    self.nameTag[2][self.nameTag[1]] = self.nameTag[2][self.nameTag[1]] + 1
+                    if self.nameTag[2][self.nameTag[1]] == 58 then self.nameTag[2][self.nameTag[1]] = 65 end
+                    if self.nameTag[2][self.nameTag[1]] == 91 then self.nameTag[2][self.nameTag[1]] = 48 end
+                    self.nameTag[3] = engine.timer.getTime()
+                elseif Input.down then
+                    self.nameTag[2][self.nameTag[1]] = self.nameTag[2][self.nameTag[1]] - 1
+                    if self.nameTag[2][self.nameTag[1]] == 47 then self.nameTag[2][self.nameTag[1]] = 90 end
+                    if self.nameTag[2][self.nameTag[1]] == 64 then self.nameTag[2][self.nameTag[1]] = 57 end
+                    self.nameTag[3] = engine.timer.getTime()
                 end
             end
 
-            self.isFrightened = false
-            self.pacman.ghostsEatened = 0
+            if Input.start == true then
+                for _, pair in ipairs(self.highscores) do
+                    if pair[1] == self:getNameTag() then
+                        --make sound
+                        return
+                    end
+                end
+                self:startLevel(1, false)
+            end
+            --check input for start game and set name
         end
-
-        self.pacman:update(dt)
-        self.ghosts.blinky:update(dt)
-        self.ghosts.clyde:update(dt)
-        self.ghosts.inky:update(dt)
-        self.ghosts.pinky:update(dt)
     end
 
     gameControl.draw = function (self)
-        if gameControl.currentLevel > 0 then
-            Font.drawText("HIGH SCORE", self.highScoreLabelCoords[1], self.highScoreLabelCoords[2], 2.6, {1,1,1})
-            Font.drawText(tostring(self.highscores[1][2]), self.highScoreValueCoords[1], self.highScoreValueCoords[2], 2.6, {1,1,1})
+        if self.currentLevel > 0 then
+            Font.drawText("HIGH SCORE", love.graphics.getWidth()/2, self.highScoreLabelCoords[2], 2.6, {1,1,1}, true)
+            Font.drawText(tostring(self.highscores[1][2]), love.graphics.getWidth()/2, self.highScoreValueCoords[2], 2.6, {1,1,1}, true)
             Font.drawText(tostring(self.score), self.scoreCounterCoords[1]-(self.grid.tilePX*(#tostring(self.score))), self.scoreCounterCoords[2], 2.6, {1,1,1})
-            Font.drawText(self.nameTag, self.nameTagCoords[1], self.nameTagCoords[2], 2.6, {1,1,1})
+            Font.drawText(self:getNameTag(), self.nameTagCoords[1], self.nameTagCoords[2], 2.6, {1,1,1})
             for i = 0, self.lifes-2 do
                 engine.graphics.setColor(1,1,1)
                 local img, scale = engine.graphics.newImage("sprites/pacman/r2.png"), 1.8
@@ -164,11 +238,48 @@ GameControl.LoadGameControl = function (input)
                 engine.graphics.draw(img, self.levelCounterCoords[1]-((i-1)*self.grid.tilePX*2)-(self.grid.tilePX), self.levelCounterCoords[2]-(self.grid.tilePX), 0, scale, scale)
             end::exit::
 
+            self.grid:draw()
             self.pacman:draw()
             self.ghosts.blinky:draw()
             self.ghosts.clyde:draw()
             self.ghosts.inky:draw()
             self.ghosts.pinky:draw()
+        elseif self.currentLevel == 0 then
+            local timePastDeath = (engine.timer.getTime() - self.deathTime)
+            if timePastDeath <= 1 then
+                Font.drawText("GAME OVER", love.graphics.getWidth()/2, self.gameOverLabel[2], 3, {1,0,0}, true)
+                self.grid:draw()
+            elseif timePastDeath <= 2 then
+                Font.drawText("GAME OVER", love.graphics.getWidth()/2, self.gameOverLabel[2], 3, {1,0,0}, true)
+            else
+                Font.drawText("GAME OVER", love.graphics.getWidth()/2, self.gameOverLabel[2], 3, {1,0,0}, true)
+                Font.drawText("PRESS ANY KEY TO CONTINUE", self.pressAnyKeyLabel[1], self.pressAnyKeyLabel[2], 2, {1,1,1})
+            end
+        else
+            Font.drawText("PACMAN", love.graphics.getWidth()/2, 20, 10, {1,1,0}, true)
+
+            for i, char in ipairs(self.nameTag[2]) do
+                local color, scale, adjust = {.9, .9, .9}, 6.5, 0
+                if i == self.nameTag[1] then
+                    scale = 7.5
+                    adjust = 5
+                    if engine.timer.getTime() - math.floor(engine.timer.getTime()) < 0.5 then
+                        color = {1,1,1}
+                    end
+                end
+                Font.drawText(string.char(char), love.graphics.getWidth()/2 + (45*(i-3)), 114 - adjust, scale, color, true)
+            end
+
+            Font.drawText("HIGH SCORES", love.graphics.getWidth()/2, 185, 4.5, {1,1,1}, true)
+            for i, pair in ipairs(self.highscores) do
+                local scoreStr = ""
+                for _=1, 7-#tostring(pair[2]) do
+                    scoreStr = scoreStr.." "
+                end
+                scoreStr = scoreStr..tostring(pair[2])
+                Font.drawText(pair[1].." / "..scoreStr, love.graphics.getWidth()/2, 200 + (i*30), 3, {1,1,1}, true)
+            end
+            --Main menu
         end
     end
 

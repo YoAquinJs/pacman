@@ -31,7 +31,9 @@ tileTypes = {
     "#" : ( 80,  80,  80), #HIGHSCORELABEL
     "$" : (120, 120, 120), #HIGHSCOREVALUE
     "%" : (140, 140, 140), #NAMETAG       
-    "^" : (160, 160, 160)  #SCORECOUNTER  
+    "^" : (160, 160, 160), #SCORECOUNTER
+    "*" : (180, 180, 180), #GAMEOVERLABEL
+    "(" : (200, 200, 200)  #GAMEOVERLABEL
 }
 
 with open(os.path.dirname(__file__) + '/../' + argv[1], 'w') as mapFile:

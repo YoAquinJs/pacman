@@ -15,14 +15,15 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
         name = name,
 
         lastFrameTime = 0,
-        nextFrameTime = 0.1,
+        nextFrameTime = 0.15,
         frame = 0,
         renderSprite = "l1",
         renderType = name,
         frightenedVelocity = 2,
+        frightenedColor="B",
         eatenVelocity = 8,
         state = Self.states.CHASE,
-        startIdleTime = 2,
+        startIdleTime = 1,
         position = {ghostStart.startPosition[1], ghostStart.startPosition[2]},
         velocity = 5, --Tiles per second
         direction = {0, 0}, --Left at start
@@ -32,7 +33,8 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
         target = {1, 1},
 
         loadedTime = 0,
-        spawn = {true, "out"},
+        startTimeInSpawn = 0,
+        spawn = {true, "in", true},
         tunnel = nil,
         stateDuration = 10,
         stateTimeBegin = 0,
@@ -41,8 +43,13 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
     }
 
     ghost.update = function (self, dt)
-        if engine.timer.getTime() - self.loadedTime < self.startIdleTime or self.stoped == true  then
+        if engine.timer.getTime() - self.loadedTime < self.startIdleTime or self.stoped == true then
             return
+        end
+
+        if engine.timer.getTime() - self.loadedTime - self.startIdleTime > self.startTimeInSpawn and self.spawn[3] == true then
+            self.spawn[2] = "out"
+            self.spawn[3] = false
         end
 
         if self.position[self.directionAxis] * self.direction[self.directionAxis] >
@@ -58,7 +65,7 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
 
         end
 
-        if math.abs(self.pacman.position[1] - self.position[1]) < 3 and math.abs(self.pacman.position[2] - self.position[2]) < 3
+        if math.abs(self.pacman.position[1] - self.position[1]) < self.grid.tilePX/2 and math.abs(self.pacman.position[2] - self.position[2]) < self.grid.tilePX/2
         and self.state ~= Self.states.FRIGHTENED and self.state ~= Self.states.EATEN then
             self.gameControl:eatPacman()
         end
@@ -93,17 +100,25 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
                     self.directionAxis = math.abs(nextDirection[1]) + math.abs(2 * nextDirection[2])
                 end
             elseif self.spawn[2] == "in" then
-                if math.abs(self.position[1] - self.grid.ghostSpawnCenterCoordinates[1]) > 1 then
-                    if (self.grid.ghostSpawnCenterCoordinates[1] - self.position[1]) > 0 then
-                        self.direction = {1, 0}
-                    else
+                if self.spawn[3] == true then
+                    if self.position[1] >= self.grid.ghostSpawnCenterCoordinates[1] + (self.grid.tilePX*2) then
                         self.direction = {-1, 0}
+                    elseif self.position[1] <= self.grid.ghostSpawnCenterCoordinates[1] - (self.grid.tilePX*2) then
+                        self.direction = {1, 0}
                     end
-                elseif self.position[2] < self.grid.ghostSpawnCenterCoordinates[2] then
-                    self.direction = {0, 1}
                 else
-                    self.spawn[2] = "out"
-                    self.state = self.gameControl.generalState
+                    if math.abs(self.position[1] - self.grid.ghostSpawnCenterCoordinates[1]) > 1 then
+                        if (self.grid.ghostSpawnCenterCoordinates[1] - self.position[1]) > 0 then
+                            self.direction = {1, 0}
+                        else
+                            self.direction = {-1, 0}
+                        end
+                    elseif self.position[2] < self.grid.ghostSpawnCenterCoordinates[2] then
+                        self.direction = {0, 1}
+                    else
+                        self.spawn[2] = "out"
+                        self.state = self.gameControl.generalState
+                    end
                 end
             end
         end
@@ -168,6 +183,10 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
 
                 self.nextTile[self.directionAxis] = self.nextTile[self.directionAxis] + self.direction[self.directionAxis]
                 if self.tunnel ~= nil then
+                    if self.pacman.tunnel ~= nil then
+                        self.gameControl:eatPacman()
+                    end
+
                     self.tile = {self.tunnel[1], self.tunnel[2]}
                     self.nextTile = {self.tunnel[1] + self.direction[1], self.tunnel[2]}
                     local centerCoordinates = self.grid:getCenterCoordinates(self.tunnel[1], self.tunnel[2])
@@ -198,10 +217,18 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
                 self.lastFrameTime = engine.timer.getTime()
                 self.frame = self.frame + 1
                 if self.frame > 2 then self.frame = 1 end
+
+                if self.state == Self.states.FRIGHTENED then
+                    if self.frightenedColor ~= "W" and self.gameControl.currentLevelInfo.frightenedModeTime - (engine.timer.getTime() - self.gameControl.isFrightened) < 1.5 then
+                        self.frightenedColor = "W"
+                    else
+                        self.frightenedColor = "B"
+                    end
+                end
             end
 
             if self.state == Self.states.FRIGHTENED then
-                self.renderSprite = "fB"..tostring(self.frame)
+                self.renderSprite = "f"..self.frightenedColor..tostring(self.frame)
                 self.renderType = "ghosts"
             elseif  self.state == Self.states.EATEN then
                 if self.direction[1] == -1 then
@@ -254,7 +281,6 @@ Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman)
 
     Blinky.spawn[1] = false
     Blinky.direction = {-1, 0}
-    Blinky.startIdleTime = 1
     Blinky.getTarget = function (self)
         if self.state == Self.states.SCATTER then
             return {grid.blinkyGridInfo.scatterTile[1], grid.blinkyGridInfo.scatterTile[2]}
@@ -265,7 +291,7 @@ Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman)
         end
     end
 
-    Pinky.startIdleTime = 2
+    Pinky.spawn[2] = "out"
     Pinky.getTarget = function (self)
         if self.state == Self.states.SCATTER then
             return {grid.pinkyGridInfo.scatterTile[1], grid.pinkyGridInfo.scatterTile[2]}
@@ -279,7 +305,8 @@ Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman)
         end
     end
 
-    Inky.startIdleTime = 4
+    Inky.startTimeInSpawn = 4
+    Inky.direction = {1, 0}
     Inky.getTarget = function (self)
         if self.state == Self.states.SCATTER then
             return {grid.inkyGridInfo.scatterTile[1], grid.inkyGridInfo.scatterTile[2]}
@@ -295,7 +322,8 @@ Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman)
         end
     end
 
-    Clyde.startIdleTime = 6
+    Clyde.startTimeInSpawn = 8
+    Clyde.direction = {-1, 0}
     Clyde.getTarget = function (self)
         if self.state == Self.states.SCATTER then
             return {grid.clydeGridInfo.scatterTile[1], grid.clydeGridInfo.scatterTile[2]}

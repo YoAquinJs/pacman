@@ -1,8 +1,7 @@
 Pacman = { }
 
-Pacman.LoadPacman = function (input, grid, gameControl)
+Pacman.LoadPacman = function (grid, gameControl)
     local pacman = {
-        input = input,
         grid = grid,
         gameControl = gameControl,
         ghosts = nil,
@@ -15,7 +14,7 @@ Pacman.LoadPacman = function (input, grid, gameControl)
         frame = 0,
         renderSprite = "fill",
         position = {grid.pacmanGridInfo.startPosition[1], grid.pacmanGridInfo.startPosition[2]},
-        velocity = 5, --Tiles per second
+        velocity = 10, --Tiles per second
         direction = {-1, 0}, --Left at start
         nextDirection = {-1, 0},
         facing = {-1, 0},
@@ -49,23 +48,22 @@ Pacman.LoadPacman = function (input, grid, gameControl)
 
         if self.ghostsEatened > 0 then
             for key, _ in pairs(self.ghosts) do
-                if math.abs(self.ghosts[key].position[1] - self.position[1]) < 3 and math.abs(self.ghosts[key].position[2] - self.position[2]) < 3
+                if math.abs(self.ghosts[key].position[1] - self.position[1]) < self.grid.tilePX/2 and math.abs(self.ghosts[key].position[2] - self.position[2]) < self.grid.tilePX/2
                 and self.ghosts[key].state == self.states.FRIGHTENED then
-                    self.ghosts[key].state = self.states.EATEN
-                    self.gameControl.score = self.gameControl.score + (200 * self.ghostsEatened)
+                    self.gameControl:eatGhost(key, self.ghostsEatened)
                     self.ghostsEatened = self.ghostsEatened + 1
                 end
             end
         end
 
         if self.tunnel == nil then
-            if self.input.up and self.grid:getTileContent(self.tile[1], self.tile[2] - 1) ~= self.grid.WALL then
+            if Input.up and self.grid:getTileContent(self.tile[1], self.tile[2] - 1) ~= self.grid.WALL then
                 self.nextDirection = {0, -1}
                 if self.directionAxis == 2 then
                     self.direction[2] = -1
                 end
             end
-            if self.input.down then
+            if Input.down then
                 local nextTileContent = self.grid:getTileContent(self.tile[1], self.tile[2] + 1)
                 if nextTileContent ~= self.grid.WALL and nextTileContent ~= self.grid.BLOCK then
                     self.nextDirection = {0, 1}
@@ -74,13 +72,13 @@ Pacman.LoadPacman = function (input, grid, gameControl)
                     end
                 end
             end
-            if self.input.left and self.grid:getTileContent(self.tile[1] - 1, self.tile[2]) ~= self.grid.WALL then
+            if Input.left and self.grid:getTileContent(self.tile[1] - 1, self.tile[2]) ~= self.grid.WALL then
                 self.nextDirection = {-1, 0}
                 if self.directionAxis == 1 then
                     self.direction[1] = -1
                 end
             end
-            if self.input.right and self.grid:getTileContent(self.tile[1] + 1, self.tile[2]) ~= self.grid.WALL then
+            if Input.right and self.grid:getTileContent(self.tile[1] + 1, self.tile[2]) ~= self.grid.WALL then
                 self.nextDirection = {1, 0}
                 if self.directionAxis == 1 then
                     self.direction[1] = 1
@@ -130,16 +128,16 @@ Pacman.LoadPacman = function (input, grid, gameControl)
                 if self.frame > 3 then self.frame = 1 end
             end
             if self.frame ~= 3 then
-                if self.facing[1] == -1 then
+                if self.direction[1] == -1 then
                     self.renderSprite = "l"..tostring(self.frame)
-                elseif self.facing[1] == 1 then
+                elseif self.direction[1] == 1 then
                     self.renderSprite = "r"..tostring(self.frame)
-                elseif self.facing[2] == -1 then
+                elseif self.direction[2] == -1 then
                     self.renderSprite = "u"..tostring(self.frame)
-                elseif self.facing[2] == 1 then
+                elseif self.direction[2] == 1 then
                     self.renderSprite = "d"..tostring(self.frame)
                 end
-            else
+            elseif self.direction[1] ~= 0 or self.direction[2] ~= 0 then
                 self.renderSprite = "fill"
             end
         end
@@ -150,7 +148,7 @@ Pacman.LoadPacman = function (input, grid, gameControl)
                 self.frame = self.frame + 1
 
                 if self.frame > 13 then
-                    self.gameControl:startLevel(self.gameControl.currentLevel)
+                    self.gameControl:pacmanDie()
                 end
 
                 self.renderSprite = "dh"..tostring(self.frame)
