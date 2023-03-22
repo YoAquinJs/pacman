@@ -26,6 +26,7 @@ GameControl.LoadGameControl = function ()
         nameTagCoords=nil,
         scoreCounterCoords=nil,
         gameOverLabel=nil,
+
         nameTag={1, {65, 65, 65, 65, 65}, 0},
         lifes=1,
         generalState=nil,
@@ -33,6 +34,8 @@ GameControl.LoadGameControl = function ()
         score=0,
         currentLevel=-1,
         currentLevelInfo={},
+        deathTime=0,
+        winTime=0,
         levels = {
             {
                 untilLevel = 1,
@@ -132,7 +135,6 @@ GameControl.LoadGameControl = function ()
             if self.lifes == 0 then
                 self.deathTime = engine.timer.getTime()
                 self.currentLevel = 0
-                print(self.score)
                 table.insert(self.highscores, {self:getNameTag(), self.score})
                 self:serializeScores()
                 return
@@ -143,6 +145,17 @@ GameControl.LoadGameControl = function ()
             self.ghosts[key].state = self.states.EATEN
             self.ghosts[key].nextFrameTime = 0.15
             self.score = self.score + (200 * ghostsEatened)
+        end,
+        winLevel = function (self)
+            for key, _ in pairs(self.ghosts) do
+                self.ghosts[key].stoped = true
+                self.ghosts[key].render = false
+            end
+
+            engine.timer.sleep(1)
+            self.pacman.stoped = true
+            self.pacman.render = false
+            self.winTime = engine.timer.getTime()
         end
     }
 
@@ -150,17 +163,43 @@ GameControl.LoadGameControl = function ()
 
     gameControl.update = function (self, dt)
         if self.currentLevel > 0 then
+            if self.grid.consumables == 0 then
+                if engine.timer.getTime() - self.winTime > 3 then
+                    engine.timer.sleep(.5)
+                    self:startLevel(self.currentLevel+1, false)
+                    self.grid.wallColor = {0,0,1}
+                    return
+                end
+                if engine.timer.getTime() - self.winTime - math.floor(engine.timer.getTime() - self.winTime) > .75 then
+                    self.grid.wallColor = {1,1,1}
+                else
+                    self.grid.wallColor = {0,0,1}
+                end
+            end
+
             -- Check for iterating between SCATTER and CHASE
-            if self.isFrightened ~= false and (engine.timer.getTime() - self.isFrightened) > self.currentLevelInfo.frightenedModeTime then
-                for key, _ in pairs(self.ghosts) do
-                    if self.ghosts[key].state ~= self.states.EATEN then
-                        self.ghosts[key].state = self.generalState
-                        self.ghosts[key].nextFrameTime = 0.15
+            if self.isFrightened ~= false then
+                if (engine.timer.getTime() - self.isFrightened) > self.currentLevelInfo.frightenedModeTime then
+                    for key, _ in pairs(self.ghosts) do
+                        if self.ghosts[key].state ~= self.states.EATEN then
+                            self.ghosts[key].state = self.generalState
+                            self.ghosts[key].nextFrameTime = 0.15
+                        end
+                    end
+
+                    self.isFrightened = false
+                    self.pacman.ghostsEatened = 0
+                elseif (engine.timer.getTime() - self.isFrightened) > self.currentLevelInfo.frightenedModeTime-2 then
+                    local changes, frightenedColor = math.floor((engine.timer.getTime() - self.isFrightened - (self.currentLevelInfo.frightenedModeTime-2))/0.3 + 0.5), "B"
+                    if changes % 2 == 1 then
+                        frightenedColor = "W"
+                    end
+                    for key, _ in pairs(self.ghosts) do
+                        if self.ghosts[key].state == self.states.EATEN then
+                            self.ghosts[key].frightenedColor = frightenedColor
+                        end
                     end
                 end
-
-                self.isFrightened = false
-                self.pacman.ghostsEatened = 0
             end
 
             self.pacman:update(dt)

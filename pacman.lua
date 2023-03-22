@@ -25,6 +25,7 @@ Pacman.LoadPacman = function (grid, gameControl)
         loadedTime = 0,
         tunnel = nil,
         stoped = false,
+        render = true,
         dying = false
     }
 
@@ -121,6 +122,8 @@ Pacman.LoadPacman = function (grid, gameControl)
 
 
     pacman.draw = function (self)
+        if self.render == false then return end
+
         if engine.timer.getTime() - self.loadedTime > self.startIdleTime and not self.stoped then
             if (engine.timer.getTime() - self.lastFrameTime) >= self.nextFrameTime then
                 self.lastFrameTime = engine.timer.getTime()

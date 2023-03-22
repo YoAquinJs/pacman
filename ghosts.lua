@@ -217,14 +217,6 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
                 self.lastFrameTime = engine.timer.getTime()
                 self.frame = self.frame + 1
                 if self.frame > 2 then self.frame = 1 end
-
-                if self.state == Self.states.FRIGHTENED then
-                    if self.frightenedColor ~= "W" and self.gameControl.currentLevelInfo.frightenedModeTime - (engine.timer.getTime() - self.gameControl.isFrightened) < 1.5 then
-                        self.frightenedColor = "W"
-                    else
-                        self.frightenedColor = "B"
-                    end
-                end
             end
 
             if self.state == Self.states.FRIGHTENED then

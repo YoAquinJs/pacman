@@ -29,9 +29,7 @@ end
 
 -- TODO
 -- Correct pacman movement
--- wall sprite selection
--- Blinkin when win
+-- wall sprite selection with wall sprites
 -- Sound
--- Dificultity settings
-
+-- REFACTOR Dificultity settings
 --BUGS

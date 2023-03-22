@@ -13,6 +13,7 @@ Grid.LoadGrid = function (gameControl)
         inkyGridInfo = {},
         pinkyGridInfo = {},
         clydeGridInfo = {},
+        wallColor={0,0,1},
         EMPTY    = 0,
         WALL     = 1,
         BLOCK    = 2,
@@ -29,7 +30,7 @@ Grid.LoadGrid = function (gameControl)
                         local coordinates = self:getCoordinates(x, y)
                         --engine.graphics.setColor(0,0,0)
                         --engine.graphics.rectangle("fill", coordinates[1] + self.tilePX/4, coordinates[2] + self.tilePX/4, self.tilePX/2, self.tilePX/2)
-                        engine.graphics.setColor(0,0,1)
+                        engine.graphics.setColor(self.wallColor[1], self.wallColor[2], self.wallColor[3])
                         if self.TILES[x][y].isThin == false then
                             engine.graphics.rectangle("line", coordinates[1] + self.tilePX/4, coordinates[2] + self.tilePX/4, self.tilePX/2, self.tilePX/2)
                         else
@@ -77,7 +78,7 @@ Grid.LoadGrid = function (gameControl)
             end
 
             if self.consumables == 0 then
-                self.gameControl:startLevel(self.gameControl.currentLevel+1)
+                self.gameControl:winLevel()
             end
         end,
         getWallRender = function (self, x, y)
