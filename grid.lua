@@ -13,7 +13,8 @@ Grid.LoadGrid = function (gameControl)
         inkyGridInfo = {},
         pinkyGridInfo = {},
         clydeGridInfo = {},
-        wallColor={0,0,1},
+        wallColor = {0,0,1},
+        mazeImgCoords = nil,
         EMPTY    = 0,
         WALL     = 1,
         BLOCK    = 2,
@@ -23,26 +24,15 @@ Grid.LoadGrid = function (gameControl)
         WALKABLE = 6,
         draw = function (self)
             engine.graphics.setColor(1,1,1)
+            local mazeImg = engine.graphics.newImage("map/maze.png")
+            local imgWidth, imgHeight = mazeImg:getDimensions()
+            local scale = 2
 
+            mazeImg:setFilter("nearest", "nearest")
+            engine.graphics.draw(mazeImg, self.mazeImgCoords[1], self.mazeImgCoords[2], 0, scale, scale)
             for x=1,#self.TILES do
                 for y=1,#self.TILES[x] do
-                    if self.TILES[x][y].content == self.WALL then--WALL
-                        local coordinates = self:getCoordinates(x, y)
-                        --engine.graphics.setColor(0,0,0)
-                        --engine.graphics.rectangle("fill", coordinates[1] + self.tilePX/4, coordinates[2] + self.tilePX/4, self.tilePX/2, self.tilePX/2)
-                        engine.graphics.setColor(self.wallColor[1], self.wallColor[2], self.wallColor[3])
-                        if self.TILES[x][y].isThin == false then
-                            engine.graphics.rectangle("line", coordinates[1] + self.tilePX/4, coordinates[2] + self.tilePX/4, self.tilePX/2, self.tilePX/2)
-                        else
-                            engine.graphics.rectangle("line", coordinates[1] + self.tilePX/4, coordinates[2] + self.tilePX/4, self.tilePX/2, self.tilePX/2)
-                        end
-                    elseif self.TILES[x][y].content == self.BLOCK then--BLOCK
-                        local coordinates = self:getCoordinates(x, y)
-                        --engine.graphics.setColor(0,0,0)
-                        --engine.graphics.rectangle("fill", coordinates[1] , coordinates[2], self.tilePX, self.tilePX)
-                        engine.graphics.setColor(1,1,1)
-                        engine.graphics.rectangle("line", coordinates[1] , coordinates[2] + self.tilePX/4, self.tilePX, self.tilePX/2)
-                    elseif self.TILES[x][y].consumable == self.BISCUIT then--BISCUIT
+                    if self.TILES[x][y].consumable == self.BISCUIT then--BISCUIT
                         local coordinates = self:getCenterCoordinates(x, y)
                         engine.graphics.setColor(1,1,1)
                         engine.graphics.circle("fill", coordinates[1], coordinates[2] , self.tilePX/8)
@@ -58,7 +48,7 @@ Grid.LoadGrid = function (gameControl)
             return {math.ceil(x/self.tilePX), math.ceil(y/self.tilePX)}
         end,
         getCoordinates = function (self, tileX, tileY)
-            return {(tileX * self.tilePX) - (self.tilePX*3), (tileY * self.tilePX) - (self.tilePX*2)}
+            return {(tileX * self.tilePX) - (self.tilePX*3)+50, (tileY * self.tilePX) - (self.tilePX*2)+50}
         end,
         getTileContent = function (self, tileX, tileY)
             return self.TILES[tileX][tileY].content
@@ -80,33 +70,6 @@ Grid.LoadGrid = function (gameControl)
             if self.consumables == 0 then
                 self.gameControl:winLevel()
             end
-        end,
-        getWallRender = function (self, x, y)
-            --3 Walls
-            if self.TILES[x][y-1].content == self.WALL and self.TILES[x+1][y].content == self.WALL and self.TILES[x][y+1].content == self.WALL then return {wallType = 31, direction = 1} end
-            if self.TILES[x-1][y].content == self.WALL and self.TILES[x][y+1].content == self.WALL and self.TILES[x-1][y].content == self.WALL then return {wallType = 31, direction = 2} end
-            if self.TILES[x-1][y].content == self.WALL and self.TILES[x][y-1].content == self.WALL and self.TILES[x][y+1].content == self.WALL then return {wallType = 31, direction = 3} end
-            if self.TILES[x-1][y].content == self.WALL and self.TILES[x][y+1].content == self.WALL and self.TILES[x+1][y].content == self.WALL then return {wallType = 31, direction = 4} end
-
-            if self.TILES[x][y-1].content == self.WALL and self.TILES[x+1][y-1].content == self.WALL and self.TILES[x+1][y].content == self.WALL then return {wallType = 32, direction = 1} end
-            if self.TILES[x][y+1].content == self.WALL and self.TILES[x+1][y+1].content == self.WALL and self.TILES[x+1][y].content == self.WALL then return {wallType = 32, direction = 2} end
-            if self.TILES[x-1][y].content == self.WALL and self.TILES[x-1][y+1].content == self.WALL and self.TILES[x][y+1].content == self.WALL then return {wallType = 32, direction = 3} end
-            if self.TILES[x-1][y].content == self.WALL and self.TILES[x-1][y-1].content == self.WALL and self.TILES[x][y-1].content == self.WALL then return {wallType = 32, direction = 4} end
-
-            --2 Walls
-            if self.TILES[x-1][y].content == self.WALL and self.TILES[x+1][y].content == self.WALL then return {wallType = 21, direction = 1} end
-            if self.TILES[x][y-1].content == self.WALL and self.TILES[x][y+1].content == self.WALL then return {wallType = 21, direction = 2} end
-
-            if self.TILES[x][y-1].content == self.WALL and self.TILES[x+1][y].content == self.WALL then return {wallType = 22, direction = 1} end
-            if self.TILES[x][y+1].content == self.WALL and self.TILES[x+1][y].content == self.WALL then return {wallType = 22, direction = 2} end
-            if self.TILES[x-1][y].content == self.WALL and self.TILES[x][y+1].content == self.WALL then return {wallType = 22, direction = 3} end
-            if self.TILES[x-1][y].content == self.WALL and self.TILES[x][y-1].content == self.WALL then return {wallType = 22, direction = 4} end
-
-            --1 Wall
-            if self.TILES[x+1][y].content == self.WALL then return {wallType = 11, direction = 1} end
-            if self.TILES[x][y-1].content == self.WALL then return {wallType = 11, direction = 2} end
-            if self.TILES[x-1][y].content == self.WALL then return {wallType = 11, direction = 3} end
-            if self.TILES[x][y+1].content == self.WALL then return {wallType = 11, direction = 4} end
         end,
         reloadConsumeables = function (self)
             self.consumables = 0
@@ -160,8 +123,10 @@ Grid.LoadGrid = function (gameControl)
             local parsedC = tonumber(c, 10)
             if parsedC ~= nil then
                 grid.TILES[x][y] = {content=parsedC}
-                if parsedC == grid.WALL then
-                    grid.TILES[x][y].isThin = false
+
+                if grid.mazeImgCoords == nil and parsedC == grid.WALL then
+                    local coordinates = grid:getCoordinates(x, y)
+                    grid.mazeImgCoords = {coordinates[1], coordinates[2]}
                 elseif parsedC == grid.BISCUIT then
                     grid.TILES[x][y] = {content=grid.EMPTY, consumable = grid.BISCUIT, walkable = true}
                     grid.consumables = grid.consumables + 1
@@ -218,8 +183,6 @@ Grid.LoadGrid = function (gameControl)
             elseif c == "c" then --Clyde Scatter Tile
                 grid.TILES[x][y] = {content=grid.EMPTY}
                 grid.clydeGridInfo.scatterTile = {x, y}
-            elseif c == "l" then --Thin wall
-                grid.TILES[x][y] = {content=grid.WALL, isThin=true}
             elseif c == "!" then --LIFESCOUNTER 
                 local lifesCounterCoords = grid:getCoordinates(x, y)
                 grid.gameControl.lifesCounterCoords = {lifesCounterCoords[1], lifesCounterCoords[2]}
@@ -252,6 +215,10 @@ Grid.LoadGrid = function (gameControl)
                 local pressAnyKeyLabel = grid:getCoordinates(x, y)
                 grid.gameControl.pressAnyKeyLabel = {pressAnyKeyLabel[1], pressAnyKeyLabel[2]}
                 grid.TILES[x][y] = {content=grid.EMPTY}
+            elseif c == ")" then --PROPSPAWN
+                local centerCoords = grid:getCenterCoordinates(x, y)
+                grid.propSpawnCoords = {centerCoords[1] + (grid.tilePX/2), centerCoords[2]}
+                grid.TILES[x][y] = {content=grid.EMPTY, walkable=true}
             end
             x = x + 1
         end
@@ -259,11 +226,6 @@ Grid.LoadGrid = function (gameControl)
 
     for y = 1, #grid.TILES[1] do
         for x = 1, #grid.TILES do
-            if grid.TILES[x][y].content == grid.WALL then
-                local wallInf = grid:getWallRender(x, y)
-                grid.TILES[x][y].wallType = wallInf.wallType
-                grid.TILES[x][y].direction = wallInf.direction
-            end
 
             if grid.TILES[x][y].walkable ~= nil then
                 if grid.TILES[x][y-1].walkable ~= nil or grid.TILES[x][y+1].walkable ~= nil then

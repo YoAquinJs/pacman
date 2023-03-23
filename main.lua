@@ -8,10 +8,10 @@ function engine.load() --On game laod
     _G.Input = Input.getInput()
 
     engine.graphics.setBackgroundColor(0,0,0) --window Background Color
-    engine.window.setMode(#GameControl.grid.TILES*GameControl.grid.tilePX - (GameControl.grid.tilePX*4),
-    #GameControl.grid.TILES[1]*GameControl.grid.tilePX - GameControl.grid.tilePX, {display = 2, fullscreen=false, centered=true})
+    engine.window.setMode(#GameControl.grid.TILES*GameControl.grid.tilePX - (GameControl.grid.tilePX*4)+100,
+    #GameControl.grid.TILES[1]*GameControl.grid.tilePX - GameControl.grid.tilePX+100, {display = 2, fullscreen=false, centered=true})
 
-    --GameControl:startLevel(1)
+    --GameControl:startLevel(10)
 end
 
 local i = 0
@@ -29,7 +29,6 @@ end
 
 -- TODO
 -- Correct pacman movement
--- wall sprite selection with wall sprites
 -- Sound
 -- REFACTOR Dificultity settings
---BUGS
+--BUGS 

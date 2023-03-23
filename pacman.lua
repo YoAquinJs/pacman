@@ -14,7 +14,7 @@ Pacman.LoadPacman = function (grid, gameControl)
         frame = 0,
         renderSprite = "fill",
         position = {grid.pacmanGridInfo.startPosition[1], grid.pacmanGridInfo.startPosition[2]},
-        velocity = 10, --Tiles per second
+        velocity = 6.1, --Tiles per second
         direction = {-1, 0}, --Left at start
         nextDirection = {-1, 0},
         facing = {-1, 0},
@@ -162,7 +162,7 @@ Pacman.LoadPacman = function (grid, gameControl)
             engine.graphics.setColor(1,1,1)
             local img = engine.graphics.newImage("sprites/pacman/"..self.renderSprite..".png")
             img:setFilter("nearest", "nearest")
-            engine.graphics.draw(img, self.position[1]-8, self.position[2]-8, 0, 1.5, 1.5)
+            engine.graphics.draw(img, self.position[1]-16, self.position[2]-16, 0, 2, 2)
         end
         --engine.graphics.setColor(1,0,0)
         --local debugCoordinates = self.grid:getCoordinates(self.tile[1], self.tile[2])       

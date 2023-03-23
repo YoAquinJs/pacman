@@ -25,7 +25,7 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
         state = Self.states.CHASE,
         startIdleTime = 1,
         position = {ghostStart.startPosition[1], ghostStart.startPosition[2]},
-        velocity = 5, --Tiles per second
+        velocity = 6, --Tiles per second
         direction = {0, 0}, --Left at start
         directionAxis = 1,
         tile = {ghostStart.startTile[1], ghostStart.startTile[2]},
@@ -65,7 +65,7 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
 
         end
 
-        if math.abs(self.pacman.position[1] - self.position[1]) < self.grid.tilePX/2 and math.abs(self.pacman.position[2] - self.position[2]) < self.grid.tilePX/2
+        if math.abs(self.pacman.position[1] - self.position[1]) < (self.grid.tilePX/2)+2 and math.abs(self.pacman.position[2] - self.position[2]) < (self.grid.tilePX/2)+2
         and self.state ~= Self.states.FRIGHTENED and self.state ~= Self.states.EATEN then
             self.gameControl:eatPacman()
         end
@@ -78,8 +78,10 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
                     else
                         self.direction = {-1, 0}
                     end
+                    self.directionAxis = 1
                 elseif self.position[2] > self.grid.ghostSpawnEntranceCoordinates[2] then
                     self.direction = {0, -1}
+                    self.directionAxis = 2
                 else
                     self.spawn[1] = false
 
@@ -249,17 +251,7 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
         engine.graphics.setColor(1,1,1)
         local img = engine.graphics.newImage("sprites/"..self.renderType.."/"..self.renderSprite..".png")
         img:setFilter("nearest", "nearest")
-        engine.graphics.draw(img, self.position[1]-8, self.position[2]-8, 0, 1.5, 1.5)
-
-        --engine.graphics.setColor(1,0,0)
-        --local debugCoordinates = self.grid:getCoordinates(self.tile[1], self.tile[2])
-        --engine.graphics.rectangle("line", debugCoordinates[1], debugCoordinates[2], self.grid.tilePX, self.grid.tilePX)
-
-        --if self.target ~= nil then
-        --    engine.graphics.setColor(self.color[1], self.color[2], self.color[3])
-        --    debugCoordinates = self.grid:getCenterCoordinates(self.target[1], self.target[2])
-        --    engine.graphics.circle("fill", debugCoordinates[1], debugCoordinates[2], self.grid.tilePX/5, self.grid.tilePX/5)
-        --end
+        engine.graphics.draw(img, self.position[1]-16, self.position[2]-16, 0, 2, 2)
     end
 
     ghost.loadedTime = engine.timer.getTime()

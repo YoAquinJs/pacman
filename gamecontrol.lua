@@ -17,7 +17,9 @@ GameControl.LoadGameControl = function ()
         savingsFile = "savings/highscores",
         maxHighscores = 5,
         animVelocity = 10,
+        propMaxTime=10,
         levelSprites = {"cherry","strawberry","orange","apple","melon","galaxian","bell","key"},
+        levelSpritesPoints = {100,300,500,700,1000,2000,3000,5000},
 
         levelCounterCoords=nil,
         lifesCounterCoords=nil,
@@ -28,7 +30,7 @@ GameControl.LoadGameControl = function ()
         gameOverLabel=nil,
 
         nameTag={1, {65, 65, 65, 65, 65}, 0},
-        lifes=1,
+        lifes=2,
         generalState=nil,
         isFrightened=false,--Define frightened start time or false for no frightened mode
         score=0,
@@ -36,6 +38,8 @@ GameControl.LoadGameControl = function ()
         currentLevelInfo={},
         deathTime=0,
         winTime=0,
+        propSpawnTime=0,
+        propLastSpawnTime=0,
         levels = {
             {
                 untilLevel = 1,
@@ -84,6 +88,8 @@ GameControl.LoadGameControl = function ()
                 self.ghosts[key].state = self.generalState
             end
 
+            self.prop = 0
+            self.propSpawnTime = engine.timer.getTime()
             self.currentLevel = level
         end,
         frightenedMode = function (self)
@@ -130,6 +136,7 @@ GameControl.LoadGameControl = function ()
             for key, _ in pairs(self.ghosts) do
                 self.ghosts[key].render = false
             end
+            self.prop = 0
         end,
         pacmanDie = function (self)
             if self.lifes == 0 then
@@ -177,6 +184,26 @@ GameControl.LoadGameControl = function ()
                 end
             end
 
+            if (engine.timer.getTime() - self.propSpawnTime) % 15 > 14.9 and self.prop == 0 then
+                self.prop = self.currentLevel
+                self.propLastSpawnTime = engine.timer.getTime()
+
+                if self.currentLevel > 8 then
+                    self.prop = 8
+                end
+            end
+
+            if self.prop ~= 0  and (engine.timer.getTime() - self.propLastSpawnTime) >= self.propMaxTime then
+                self.prop = 0
+                self.propSpawnTime = engine.timer.getTime()
+            end
+
+            if self.prop ~= 0 and math.abs(self.pacman.position[1] - self.grid.propSpawnCoords[1]) < 5 and math.abs(self.pacman.position[2] - self.grid.propSpawnCoords[2]) < 5 then
+                self.score = self.score + self.levelSpritesPoints[self.prop]
+                self.prop = 0
+                self.propSpawnTime = engine.timer.getTime()
+            end
+
             -- Check for iterating between SCATTER and CHASE
             if self.isFrightened ~= false then
                 if (engine.timer.getTime() - self.isFrightened) > self.currentLevelInfo.frightenedModeTime then
@@ -195,7 +222,7 @@ GameControl.LoadGameControl = function ()
                         frightenedColor = "W"
                     end
                     for key, _ in pairs(self.ghosts) do
-                        if self.ghosts[key].state == self.states.EATEN then
+                        if self.ghosts[key].state == self.states.FRIGHTENED then
                             self.ghosts[key].frightenedColor = frightenedColor
                         end
                     end
@@ -212,14 +239,14 @@ GameControl.LoadGameControl = function ()
                 self.currentLevel = -1
             end
         else
-            if engine.timer.getTime() - self.nameTag[3] > 0.1 then
+            if engine.timer.getTime() - self.nameTag[3] > 0.15 then
                 if Input.left then
                     self.nameTag[1] = self.nameTag[1] - 1
                     if self.nameTag[1] == 0 then self.nameTag[1] = #self.nameTag[2] end
                     self.nameTag[3] = engine.timer.getTime()
                 elseif Input.right then
                     self.nameTag[1] = self.nameTag[1] + 1
-                    if self.nameTag[1] == #self.nameTag[2]+1 then self.nameTag[1] = 0 end
+                    if self.nameTag[1] == #self.nameTag[2]+1 then self.nameTag[1] = 1 end
                     self.nameTag[3] = engine.timer.getTime()
                 elseif Input.up then
                     self.nameTag[2][self.nameTag[1]] = self.nameTag[2][self.nameTag[1]] + 1
@@ -276,6 +303,15 @@ GameControl.LoadGameControl = function ()
                 img:setFilter("nearest", "nearest")
                 engine.graphics.draw(img, self.levelCounterCoords[1]-((i-1)*self.grid.tilePX*2)-(self.grid.tilePX), self.levelCounterCoords[2]-(self.grid.tilePX), 0, scale, scale)
             end::exit::
+
+            if self.prop ~= 0 then
+                local img = engine.graphics.newImage("sprites/props/"..self.levelSprites[self.prop]..".png")
+                local imgWidth, imgHeight = img:getDimensions()
+
+                engine.graphics.setColor(1,1,1)
+                img:setFilter("nearest", "nearest")
+                engine.graphics.draw(img, self.grid.propSpawnCoords[1] - (imgWidth), self.grid.propSpawnCoords[2] - (imgHeight), 0, 2, 2, 2)
+            end
 
             self.grid:draw()
             self.pacman:draw()
