@@ -33,7 +33,8 @@ tileTypes = {
     "^" : (160, 160, 160), #SCORECOUNTER
     "*" : (180, 180, 180), #GAMEOVERLABEL
     "(" : (200, 200, 200), #GAMEOVERLABEL
-    ")" : ( 50,  50, 200)  #PROPSPAWN
+    ")" : ( 50,  50, 200), #PROPSPAWN
+    "-" : (000, 150, 000)  #TUNNELHALLWAY
 }
 
 with open(os.path.dirname(__file__) + '/../' + argv[1], 'w') as mapFile:
