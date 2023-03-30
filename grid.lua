@@ -1,11 +1,11 @@
 Grid = {}
 
-Grid.LoadGrid = function (gameControl)
+Grid.LoadGrid = function (gameControl, tilePX)
 
     local grid = {
         gameControl = gameControl,
 
-        tilePX = 16,
+        tilePX = tilePX,
         TILES = {},
         tunnels = {},
         consumables = 0,
@@ -13,21 +13,23 @@ Grid.LoadGrid = function (gameControl)
         inkyGridInfo = {},
         pinkyGridInfo = {},
         clydeGridInfo = {},
-        wallColor = {0,0,1},
+        mazeColor = {1,1,1},
         mazeImgCoords = nil,
-        EMPTY    = 0,
-        WALL     = 1,
-        BLOCK    = 2,
-        BISCUIT  = 3,
-        PILL     = 4,
-        TUNNEL   = 5,
-        WALKABLE = 6,
+        EMPTY         = 0,
+        WALL          = 1,
+        BLOCK         = 2,
+        BISCUIT       = 3,
+        PILL          = 4,
+        TUNNEL        = 5,
+        WALKABLE      = 6,
         draw = function (self)
-            engine.graphics.setColor(1,1,1)
-            local mazeImg = engine.graphics.newImage("map/maze.png")
-            local imgWidth, imgHeight = mazeImg:getDimensions()
-            local scale = 2
+            engine.graphics.setColor(self.mazeColor[1],self.mazeColor[2],self.mazeColor[3])
+            local mazeImg = "map/maze.png"
+            if self.gameControl.winTime ~= 0 then mazeImg = "map/winmaze.png" print("a") end
 
+            local mazeImg = engine.graphics.newImage(mazeImg)
+            local imgWidth, imgHeight = mazeImg:getDimensions()
+            local scale = self.tilePX/(imgWidth/(#self.TILES-4))
             mazeImg:setFilter("nearest", "nearest")
             engine.graphics.draw(mazeImg, self.mazeImgCoords[1], self.mazeImgCoords[2], 0, scale, scale)
             for x=1,#self.TILES do
@@ -48,7 +50,7 @@ Grid.LoadGrid = function (gameControl)
             return {math.ceil(x/self.tilePX), math.ceil(y/self.tilePX)}
         end,
         getCoordinates = function (self, tileX, tileY)
-            return {(tileX * self.tilePX) - (self.tilePX*3)+50, (tileY * self.tilePX) - (self.tilePX*2)+50}
+            return {(tileX * self.tilePX) - (self.tilePX*3), (tileY * self.tilePX) - (self.tilePX*2)+50}
         end,
         getTileContent = function (self, tileX, tileY)
             return self.TILES[tileX][tileY].content
@@ -63,7 +65,7 @@ Grid.LoadGrid = function (gameControl)
             self.gameControl.score = self.gameControl.score + 10
 
             if consumable == self.PILL then
-                self.gameControl.score = self.gameControl.score + 40 --50 per PILL
+                self.gameControl.score = self.gameControl.score + 40
                 self.gameControl:frightenedMode()
             end
 
@@ -141,8 +143,7 @@ Grid.LoadGrid = function (gameControl)
                 elseif parsedC == grid.BLOCK and grid.ghostSpawnCenterCoordinates == nil and grid.ghostSpawnCenterCoordinates == nil then
                     local blockCoordinates = grid:getCoordinates(x, y)
                     grid.ghostSpawnCenterCoordinates = {blockCoordinates[1] + grid.tilePX - 1, blockCoordinates[2] + (grid.tilePX * 2.5)}
-                    grid.ghostSpawnEntranceCoordinates = {blockCoordinates[1] + grid.tilePX - 1, blockCoordinates[2] - (grid.tilePX/2)}
-                end
+                    grid.ghostSpawnEntranceCoordinates = {blockCoordinates[1] + grid.tilePX - 1, blockCoordinates[2] - (grid.tilePX/2)}end
             end
 
             if c == "M" then --Player Grid Info
@@ -219,6 +220,8 @@ Grid.LoadGrid = function (gameControl)
                 local centerCoords = grid:getCenterCoordinates(x, y)
                 grid.propSpawnCoords = {centerCoords[1] + (grid.tilePX/2), centerCoords[2]}
                 grid.TILES[x][y] = {content=grid.EMPTY, walkable=true}
+            elseif c == "-" then --PROPSPAWN
+                grid.TILES[x][y] = {content=grid.EMPTY, tunnelHallway=true}
             end
             x = x + 1
         end

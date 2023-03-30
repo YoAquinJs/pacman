@@ -14,19 +14,17 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
         gameControl = gameControl,
         name = name,
 
+        startIdleTime = 1,
         lastFrameTime = 0,
-        nextFrameTime = 0.15,
+        nextFrameTime = 0.1,
         frame = 0,
         renderSprite = "l1",
-        renderType = name,
-        frightenedVelocity = 2,
         frightenedColor="B",
-        eatenVelocity = 8,
+        renderType = name,
+        velocity = 8,
         state = Self.states.CHASE,
-        startIdleTime = 1,
         position = {ghostStart.startPosition[1], ghostStart.startPosition[2]},
-        velocity = 6, --Tiles per second
-        direction = {0, 0}, --Left at start
+        direction = {0, 0},
         directionAxis = 1,
         tile = {ghostStart.startTile[1], ghostStart.startTile[2]},
         nextTile = {ghostStart.startTile[1], ghostStart.startTile[2]},
@@ -65,14 +63,14 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
 
         end
 
-        if math.abs(self.pacman.position[1] - self.position[1]) < (self.grid.tilePX/2)+2 and math.abs(self.pacman.position[2] - self.position[2]) < (self.grid.tilePX/2)+2
+        if math.abs(self.pacman.position[1] - self.position[1]) < (self.grid.tilePX/2) and math.abs(self.pacman.position[2] - self.position[2]) < (self.grid.tilePX/2)
         and self.state ~= Self.states.FRIGHTENED and self.state ~= Self.states.EATEN then
             self.gameControl:eatPacman()
         end
 
         if self.spawn[1] == true then
             if self.spawn[2] == "out" then
-                if math.abs(self.position[1] - self.grid.ghostSpawnEntranceCoordinates[1]) > 1 then
+                if math.abs(self.position[1] - self.grid.ghostSpawnEntranceCoordinates[1]) >= 3 then
                     if (self.grid.ghostSpawnEntranceCoordinates[1] - self.position[1]) > 0 then
                         self.direction = {1, 0}
                     else
@@ -198,16 +196,19 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
             end
         end
 
-        if self.state == Self.states.FRIGHTENED then
-            self.position[1] = self.position[1] + (self.direction[1] * self.frightenedVelocity * self.grid.tilePX * dt)
-            self.position[2] = self.position[2] + (self.direction[2] * self.frightenedVelocity * self.grid.tilePX * dt)
-        elseif  self.state == Self.states.EATEN then
-            self.position[1] = self.position[1] + (self.direction[1] * self.eatenVelocity * self.grid.tilePX * dt)
-            self.position[2] = self.position[2] + (self.direction[2] * self.eatenVelocity * self.grid.tilePX * dt)
-        else
-            self.position[1] = self.position[1] + (self.direction[1] * self.velocity * self.grid.tilePX * dt)
-            self.position[2] = self.position[2] + (self.direction[2] * self.velocity * self.grid.tilePX * dt)
-        end
+        self.position[1] = self.position[1] + (self.direction[1] * self.velocity * self.grid.tilePX * dt)
+        self.position[2] = self.position[2] + (self.direction[2] * self.velocity * self.grid.tilePX * dt)
+
+        --if self.state == Self.states.FRIGHTENED then
+        --    self.position[1] = self.position[1] + (self.direction[1] * self.frightenedVelocity * self.grid.tilePX * dt)
+        --    self.position[2] = self.position[2] + (self.direction[2] * self.frightenedVelocity * self.grid.tilePX * dt)
+        --elseif  self.state == Self.states.EATEN then
+        --    self.position[1] = self.position[1] + (self.direction[1] * self.eatenVelocity * self.grid.tilePX * dt)
+        --    self.position[2] = self.position[2] + (self.direction[2] * self.eatenVelocity * self.grid.tilePX * dt)
+        --else
+        --    self.position[1] = self.position[1] + (self.direction[1] * self.velocity * self.grid.tilePX * dt)
+        --    self.position[2] = self.position[2] + (self.direction[2] * self.velocity * self.grid.tilePX * dt)
+        --end
     end
 
 
@@ -250,8 +251,9 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
         end
         engine.graphics.setColor(1,1,1)
         local img = engine.graphics.newImage("sprites/"..self.renderType.."/"..self.renderSprite..".png")
+        local imgWidth, imgHeight = img:getDimensions()
         img:setFilter("nearest", "nearest")
-        engine.graphics.draw(img, self.position[1]-16, self.position[2]-16, 0, 2, 2)
+        engine.graphics.draw(img, self.position[1]-self.grid.tilePX, self.position[2]-self.grid.tilePX, 0, self.grid.tilePX*2/imgWidth, self.grid.tilePX*2/imgHeight)
     end
 
     ghost.loadedTime = engine.timer.getTime()

@@ -10,12 +10,12 @@ Pacman.LoadPacman = function (grid, gameControl)
 
         startIdleTime = 1,
         lastFrameTime = 0,
-        nextFrameTime = 0.1,
+        nextFrameTime = 0.07,
         frame = 0,
         renderSprite = "fill",
         position = {grid.pacmanGridInfo.startPosition[1], grid.pacmanGridInfo.startPosition[2]},
-        velocity = 6.1, --Tiles per second
-        direction = {-1, 0}, --Left at start
+        velocity = 8,
+        direction = {-1, 0},
         nextDirection = {-1, 0},
         facing = {-1, 0},
         directionAxis = 1,
@@ -88,7 +88,8 @@ Pacman.LoadPacman = function (grid, gameControl)
         end
 
         if self.position[self.directionAxis] * self.direction[self.directionAxis] >=
-        self.grid:getCenterCoordinates(self.centerTile[1], self.centerTile[2])[self.directionAxis] * self.direction[self.directionAxis] then
+           self.grid:getCenterCoordinates(self.centerTile[1], self.centerTile[2])[self.directionAxis] * self.direction[self.directionAxis] then
+
             if self.direction[1] ~= 0 or self.direction[2] ~= 0 then
                 self.centerTile[self.directionAxis] = self.centerTile[self.directionAxis] + self.direction[self.directionAxis]
             end
@@ -116,8 +117,22 @@ Pacman.LoadPacman = function (grid, gameControl)
             end
         end
 
-        self.position[1] = self.position[1] + (self.direction[1] * self.velocity * self.grid.tilePX * dt)
-        self.position[2] = self.position[2] + (self.direction[2] * self.velocity * self.grid.tilePX * dt)
+        local centerCoords = self.grid:getCenterCoordinates(self.tile[1], self.tile[2])
+        if self.direction[1] ~= 0 and self.position[2] ~= centerCoords[2] then
+            self.position[2] = centerCoords[2]
+        elseif self.direction[2] ~= 0 and self.position[1] ~= centerCoords[1] then
+            self.position[1] = centerCoords[1]
+        end
+
+        local cornerBoost = 0
+        if self.grid.TILES[self.tile[1]][self.tile[2]].isIntersection == true then
+            if ((self.nextDirection[1] ~= 0 and self.directionAxis == 2) or (self.nextDirection[2] ~= 0 and self.directionAxis == 1)) and self.passedCenter == false then
+                cornerBoost = 3
+            end
+        end
+
+        self.position[1] = self.position[1] + (self.direction[1] * (self.velocity + cornerBoost) * self.grid.tilePX * dt)
+        self.position[2] = self.position[2] + (self.direction[2] * (self.velocity + cornerBoost) * self.grid.tilePX * dt)
     end
 
 
@@ -161,13 +176,18 @@ Pacman.LoadPacman = function (grid, gameControl)
         if self.frame < 12 then
             engine.graphics.setColor(1,1,1)
             local img = engine.graphics.newImage("sprites/pacman/"..self.renderSprite..".png")
+            local imgWidth, imgHeight = img:getDimensions()
             img:setFilter("nearest", "nearest")
-            engine.graphics.draw(img, self.position[1]-16, self.position[2]-16, 0, 2, 2)
+            engine.graphics.draw(img, self.position[1]-self.grid.tilePX+1, self.position[2]-self.grid.tilePX+1, 0, self.grid.tilePX*2/imgWidth, self.grid.tilePX*2/imgHeight)
         end
         --engine.graphics.setColor(1,0,0)
-        --local debugCoordinates = self.grid:getCoordinates(self.tile[1], self.tile[2])       
+        --love.graphics.setPointSize(2)
+        --engine.graphics.points(self.position[1], self.position[2])
+        --engine.graphics.setColor(0,0,1)
+        --love.graphics.setPointSize(2)
+        --local debugCoordinates = self.grid:getCenterCoordinates(self.tile[1], self.tile[2])
+        --engine.graphics.points(debugCoordinates[1], debugCoordinates[2])
         --engine.graphics.rectangle("line", debugCoordinates[1], debugCoordinates[2], self.grid.tilePX, self.grid.tilePX)
-        --engine.graphics.setColor(0,1,0)
     end
 
     pacman.loadedTime = engine.timer.getTime()
@@ -176,4 +196,3 @@ Pacman.LoadPacman = function (grid, gameControl)
 end
 
 return Pacman
-
