@@ -50,7 +50,7 @@ Grid.LoadGrid = function (gameControl, tilePX)
             return {math.ceil(x/self.tilePX), math.ceil(y/self.tilePX)}
         end,
         getCoordinates = function (self, tileX, tileY)
-            return {(tileX * self.tilePX) - (self.tilePX*3), (tileY * self.tilePX) - (self.tilePX*2)+50}
+            return {(tileX * self.tilePX) - (self.tilePX*3), (tileY * self.tilePX) - (self.tilePX*2)}
         end,
         getTileContent = function (self, tileX, tileY)
             return self.TILES[tileX][tileY].content
@@ -136,7 +136,7 @@ Grid.LoadGrid = function (gameControl, tilePX)
                     grid.TILES[x][y] = {content=grid.EMPTY, consumable = grid.PILL, walkable = true}
                     grid.consumables = grid.consumables + 1
                 elseif parsedC == grid.TUNNEL then
-                    grid.TILES[x][y].tunnelExit={}
+                    grid.TILES[x][y] = {content=grid.TUNNEL, tunnelHallway=true, tunnelExit={}}
                     table.insert(grid.tunnels, {x, y})
                 elseif parsedC == grid.WALKABLE then
                     grid.TILES[x][y] = {content=grid.EMPTY, walkable = true}

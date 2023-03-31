@@ -16,9 +16,9 @@ GameControl.LoadGameControl = function (tilePX)
 
         savingsFile = "savings/highscores",
         startLifes=3,
-        maxVelocity = .8,
+        maxVelocity = 8,
+        eatenVelocity = 12,
         maxHighscores = 5,
-        animVelocity = 10,
         propMaxTime=10,
         props = {{"cherry", 100},{"strawberry", 300},{"orange", 500},{"apple", 700},{"melon", 1000},{"galaxian", 2000},{"bell", 3000},{"key", 5000}},
 
@@ -31,45 +31,47 @@ GameControl.LoadGameControl = function (tilePX)
         gameOverLabel=nil,
 
         nameTag={1, {65, 65, 65, 65, 65}, 0},
+        popups={},
         lifes=2,
         generalState=nil,
         isFrightened=false,--Define frightened start time or false for no frightened mode
         score=0,
         currentLevel=-1,
-        currentLevelInfo={shifts={},data={}},
+        currentLevelInfo={shifts={},phase=1,startTimeOffset=0,data={}},
         deathTime=0,
         winTime=0,
         propSpawnTime=0,
         propLastSpawnTime=0,
         levels = {
-            modeShifts = {
-                {untilLevel = 1, phases = {{"SCATTER", 7}, {"CHASE", 20}, {"SCATTER", 7}, {"CHASE", 20}, {"SCATTER", 5}, {"CHASE", 20}, {"SCATTER", 5}, {"CHASE", -1}}},
-                {untilLevel = 4, phases = {{"SCATTER", 7}, {"CHASE", 20}, {"SCATTER", 7}, {"CHASE", 20}, {"SCATTER", 5}, {"CHASE", -1}}},
-                {untilLevel = -1,phases = {{"SCATTER", 5}, {"CHASE", 20}, {"SCATTER", 5}, {"CHASE", 20}, {"SCATTER", 5}, {"CHASE", -1}}},
+            modeShifts = {-- 0:SCATTER 1:CHASE
+                {untilLevel = 1, phases = {{0, 7}, {1, 20}, {0, 7}, {1, 20}, {0, 5}, {1, 20}, {0, 5}, {1, 1}}},
+                {untilLevel = 4, phases = {{0, 7}, {1, 20}, {0, 7}, {1, 20}, {0, 5}, {1, 1}}},
+                {untilLevel = -1,phases = {{0, 5}, {1, 20}, {0, 5}, {1, 20}, {0, 5}, {1, 1}}},
             },
             levelData = {
---BonusSymbol/PacmanSpeed/PacmanDotSpeed/GhostSpeed/GhostTunnelSpeed/Elroy1Dots/Elroy1Speed/Elroy2Dots/Elroy2Speed/PacmanFrightSpeed/PacmanFrightDotSpeed/GhostFrightSpeed/FrightTime/Flashes
-{"cherry",    0.80,       0.71,          0.75,      0.40,             20,       0.80,       10,        0.85,       0.90,             0.79,                0.50,            6,         5}, --  1
-{"strawberry",0.90,       0.79,          0.85,      0.45,             30,       0.90,       15,        0.95,       0.95,             0.83,                0.55,            5,         5}, --  2
-{"orange",    0.90,       0.79,          0.85,      0.45,             40,       0.90,       20,        0.95,       0.95,             0.83,                0.55,            4,         5}, --  3
-{"orange",    0.90,       0.79,          0.85,      0.45,             40,       0.90,       20,        0.95,       0.95,             0.83,                0.55,            3,         5}, --  4
-{"apple",     1.00,       0.87,          0.95,      0.50,             40,       1.00,       20,        1.05,       1.00,             0.87,                0.60,            2,         5}, --  5
-{"apple",     1.00,       0.87,          0.95,      0.50,             50,       1.00,       25,        1.05,       1.00,             0.87,                0.60,            5,         5}, --  6
-{"melon",     1.00,       0.87,          0.95,      0.50,             50,       1.00,       25,        1.05,       1.00,             0.87,                0.60,            2,         5}, --  7
-{"melon",     1.00,       0.87,          0.95,      0.50,             50,       1.00,       25,        1.05,       1.00,             0.87,                0.60,            2,         5}, --  8
-{"galaxian",  1.00,       0.87,          0.95,      0.50,             60,       1.00,       30,        1.05,       1.00,             0.87,                0.60,            1,         5}, --  9
-{"galaxian",  1.00,       0.87,          0.95,      0.50,             60,       1.00,       30,        1.05,       1.00,             0.87,                0.60,            5,         5}, -- 10
-{"bell",      1.00,       0.87,          0.95,      0.50,             60,       1.00,       30,        1.05,       1.00,             0.87,                0.60,            2,         5}, -- 11
-{"bell",      1.00,       0.87,          0.95,      0.50,             80,       1.00,       40,        1.05,       1.00,             0.87,                0.60,            1,         5}, -- 12
-{"key",       1.00,       0.87,          0.95,      0.50,             80,       1.00,       40,        1.05,       1.00,             0.87,                0.60,            1,         5}, -- 13
-{"key",       1.00,       0.87,          0.95,      0.50,             80,       1.00,       40,        1.05,       1.00,             0.87,                0.60,            3,         5}, -- 14
-{"key",       1.00,       0.87,          0.95,      0.50,            100,       1.00,       50,        1.05,       1.00,             0.87,                0.60,            1,         5}, -- 15
-{"key",       1.00,       0.87,          0.95,      0.50,            100,       1.00,       50,        1.05,       1.00,             0.87,                0.60,            1,         5}, -- 16
-{"key",       1.00,       0.87,          0.95,      0.50,            100,       1.00,       50,        1.05,        nil,              nil,                 nil,            0,       nil}, -- 17
-{"key",       1.00,       0.87,          0.95,      0.50,            100,       1.00,       50,        1.05,       1.00,             0.87,                0.60,            1,         5}, -- 18
-{"key",       1.00,       0.87,          0.95,      0.50,            120,       1.00,       60,        1.05,        nil,              nil,                 nil,            0,       nil}, -- 19
-{"key",       1.00,       0.87,          0.95,      0.50,            120,       1.00,       60,        1.05,        nil,              nil,                 nil,            0,       nil}, -- 20
-{"key",       0.90,       0.79,          0.95,      0.50,            120,       1.00,       60,        1.05,        nil,              nil,                 nil,            0,       nil}, -- 21
+--1           2           3              4          5                6          7           8          9           10                 11                  12               13
+--BonusSymbol/PacmanSpeed/PacmanDotSpeed/GhostSpeed/GhostTunnelSpeed/Elroy1Dots/Elroy1Speed/Elroy2Dots/Elroy2Speed/PacmanFrightSpeed/PacmanFrightDotSpeed/GhostFrightSpeed/FrightTime
+{ 0,          0.80,       0.71,          0.75,      0.40,             20,       0.80,       10,        0.85,       0.90,             0.79,                0.50,            6}, --  1
+{ 2,          0.90,       0.79,          0.85,      0.45,             30,       0.90,       15,        0.95,       0.95,             0.83,                0.55,            5}, --  2
+{ 3,          0.90,       0.79,          0.85,      0.45,             40,       0.90,       20,        0.95,       0.95,             0.83,                0.55,            4}, --  3
+{ 3,          0.90,       0.79,          0.85,      0.45,             40,       0.90,       20,        0.95,       0.95,             0.83,                0.55,            3}, --  4
+{ 4,          1.00,       0.87,          0.95,      0.50,             40,       1.00,       20,        1.05,       1.00,             0.87,                0.60,            2}, --  5
+{ 4,          1.00,       0.87,          0.95,      0.50,             50,       1.00,       25,        1.05,       1.00,             0.87,                0.60,            5}, --  6
+{ 5,          1.00,       0.87,          0.95,      0.50,             50,       1.00,       25,        1.05,       1.00,             0.87,                0.60,            2}, --  7
+{ 5,          1.00,       0.87,          0.95,      0.50,             50,       1.00,       25,        1.05,       1.00,             0.87,                0.60,            2}, --  8
+{ 6,          1.00,       0.87,          0.95,      0.50,             60,       1.00,       30,        1.05,       1.00,             0.87,                0.60,            1}, --  9
+{ 6,          1.00,       0.87,          0.95,      0.50,             60,       1.00,       30,        1.05,       1.00,             0.87,                0.60,            5}, -- 10
+{ 7,          1.00,       0.87,          0.95,      0.50,             60,       1.00,       30,        1.05,       1.00,             0.87,                0.60,            2}, -- 11
+{ 7,          1.00,       0.87,          0.95,      0.50,             80,       1.00,       40,        1.05,       1.00,             0.87,                0.60,            1}, -- 12
+{ 8,          1.00,       0.87,          0.95,      0.50,             80,       1.00,       40,        1.05,       1.00,             0.87,                0.60,            1}, -- 13
+{ 8,          1.00,       0.87,          0.95,      0.50,             80,       1.00,       40,        1.05,       1.00,             0.87,                0.60,            3}, -- 14
+{ 8,          1.00,       0.87,          0.95,      0.50,            100,       1.00,       50,        1.05,       1.00,             0.87,                0.60,            1}, -- 15
+{ 8,          1.00,       0.87,          0.95,      0.50,            100,       1.00,       50,        1.05,       1.00,             0.87,                0.60,            1}, -- 16
+{ 8,          1.00,       0.87,          0.95,      0.50,            100,       1.00,       50,        1.05,        nil,              nil,                 nil,            0}, -- 17
+{ 8,          1.00,       0.87,          0.95,      0.50,            100,       1.00,       50,        1.05,       1.00,             0.87,                0.60,            1}, -- 18
+{ 8,          1.00,       0.87,          0.95,      0.50,            120,       1.00,       60,        1.05,        nil,              nil,                 nil,            0}, -- 19
+{ 8,          1.00,       0.87,          0.95,      0.50,            120,       1.00,       60,        1.05,        nil,              nil,                 nil,            0}, -- 20
+{ 8,          0.90,       0.79,          0.95,      0.50,            120,       1.00,       60,        1.05,        nil,              nil,                 nil,            0}, -- 21
             }
         },
         startLevel = function (self, level, died)
@@ -87,22 +89,24 @@ GameControl.LoadGameControl = function (tilePX)
 
             for i=1,#self.levels.modeShifts do
                 if level < self.levels.modeShifts[1].untilLevel+1 or self.levels.modeShifts[1].untilLevel==-1 then
-                    self.currentLevelInfo.shifts = self.levels.modeShifts[i]
+                    self.currentLevelInfo.shifts = self.levels.modeShifts[i].phases
                     goto selectedModeShift
                 end
             end ::selectedModeShift::
 
             if level < #self.levels.levelData then
-                self.currentLevelInfo.data = self.levels.modeShifts[level]
+                self.currentLevelInfo.data = self.levels.levelData[level]
             else
-                self.currentLevelInfo.data = self.levels.modeShifts[#self.levels.levelData]
+                self.currentLevelInfo.data = self.levels.levelData[#self.levels.levelData]
             end
+            self.currentLevelInfo.startTimeOffset = engine.timer.getTime()
+            self.generalState = self.currentLevelInfo.shifts[1][1]
+            self.currentLevelInfo.phase = 1
 
             self.pacman = Pacman.LoadPacman(self.grid, self)
             local GhostsObjs = Ghosts:LoadGhosts(self.grid, self, self.pacman)
             self.ghosts = GhostsObjs
             self.states = Ghosts.states
-            self.generalState = Ghosts.states.SCATTER
             self.pacman.ghosts = GhostsObjs
             self.pacman.states = Ghosts.states
             for key, _ in pairs(self.ghosts) do
@@ -110,21 +114,23 @@ GameControl.LoadGameControl = function (tilePX)
             end
 
             self.prop = 0
-            self.propPopup = 0
             self.grid.mazeColor = {1,1,1}
             self.winTime = 0
             self.propSpawnTime = engine.timer.getTime()
             self.currentLevel = level
         end,
         frightenedMode = function (self)
-            self.isFrightened = engine.timer.getTime()
-
             for key, _ in pairs(self.ghosts) do
                 self.ghosts[key].state = self.states.FRIGHTENED
+                self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
                 self.ghosts[key].nextFrameTime = 0.199
+                self.ghosts[key].frightenedColor = "B"
             end
 
             self.pacman.ghostsEatened = 1
+            self.currentLevelInfo.startTimeOffset = self.currentLevelInfo.startTimeOffset + self.currentLevelInfo.data[13]
+
+            self.isFrightened = engine.timer.getTime()
         end,
         serializeScores = function (self)
             local formattedValues = ""
@@ -152,9 +158,9 @@ GameControl.LoadGameControl = function (tilePX)
             end
             self.pacman.stoped = true
             self.pacman.dying = true
-            engine.timer.sleep(1)
+            engine.timer.sleep(1.5)
             self.pacman.renderSprite = "fill"
-            self.pacman.frame = 0
+            self.pacman.frame = -4
             self.pacman.lastFrameTime = engine.timer.getTime()
 
             for key, _ in pairs(self.ghosts) do
@@ -175,7 +181,23 @@ GameControl.LoadGameControl = function (tilePX)
         eatGhost = function (self, key, ghostsEatened)
             self.ghosts[key].state = self.states.EATEN
             self.ghosts[key].nextFrameTime = 0.15
-            self.score = self.score + (200 * ghostsEatened)
+            local obtainedScore = (200 * ghostsEatened)
+            self.score = self.score + obtainedScore
+
+            local popupCoords = self.grid:getCenterCoordinates(self.ghosts[key].tile[1], self.ghosts[key].tile[2])
+            table.insert(self.popups, {tostring(obtainedScore), popupCoords[1], popupCoords[2] - (self.grid.tilePX/2), {0,1,1}, engine.timer.getTime(), .1, 1.7,
+            done=function ()
+                for key, _ in pairs(self.ghosts) do
+                    self.ghosts[key].stoped = true
+                end
+                self.pacman.stoped = true
+                engine.timer.sleep(1)
+                for key, _ in pairs(self.ghosts) do
+                    self.ghosts[key].stoped = false
+                end
+                self.pacman.stoped = false
+                self.pacman.render = true
+            end})
         end,
         winLevel = function (self)
             engine.timer.sleep(1.5)
@@ -211,17 +233,17 @@ GameControl.LoadGameControl = function (tilePX)
                 return
             end
 
-            if self.propPopup ~= 0 and (engine.timer.getTime() - self.propSpawnTime) > 2 then
-                self.propPopup = 0
+            for i, popup in ipairs(self.popups) do
+                if (engine.timer.getTime() - popup[5]) >= popup[6] then
+                    table.remove(self.popups, i)
+
+                    if popup.done ~= nil then popup.done() end
+                end
             end
 
             if (engine.timer.getTime() - self.propSpawnTime) % 15 > 14.9 and self.prop == 0 then
-                self.prop = self.currentLevel
+                self.prop = self.currentLevelInfo.data[1]
                 self.propLastSpawnTime = engine.timer.getTime()
-
-                if self.currentLevel > 8 then
-                    self.prop = 8
-                end
             end
 
             if self.prop ~= 0  and (engine.timer.getTime() - self.propLastSpawnTime) >= self.propMaxTime then
@@ -231,27 +253,37 @@ GameControl.LoadGameControl = function (tilePX)
 
             if self.prop ~= 0 and math.abs(self.pacman.position[1] - self.grid.propSpawnCoords[1]) < 5 and math.abs(self.pacman.position[2] - self.grid.propSpawnCoords[2]) < 5 then
                 self.score = self.score + self.props[self.prop][2]
-                self.propPopup = self.prop
+                table.insert(self.popups, {self.props[self.prop][2], self.grid.propSpawnCoords[1], self.grid.propSpawnCoords[2] - (self.grid.tilePX/2), {1,.706,1}, engine.timer.getTime(), 2, 2.2})
                 self.prop = 0
                 self.propSpawnTime = engine.timer.getTime()
             end
 
-            -- Check for iterating between SCATTER and CHASE
+            local pastIsInDots = self.pacman.isInDots
+            self.pacman.isInDots = self.grid.TILES[self.pacman.tile[1]][self.pacman.tile[2]].consumable ~= nil
+
+            if self.pacman.isInDots == false and pastIsInDots == true and
+            self.grid.TILES[self.pacman.tile[1]+self.pacman.direction[1]][self.pacman.tile[2]+self.pacman.direction[2]].consumable ~= nil then
+                self.pacman.isInDots = true
+            end
+
             if self.isFrightened ~= false then
-                if (engine.timer.getTime() - self.isFrightened) > 7 then--self.currentLevelInfo.frightenedModeTime then
+                local frightenedTimeLeft = self.currentLevelInfo.data[13] - (engine.timer.getTime() - self.isFrightened)
+                if frightenedTimeLeft < 0 then--self.currentLevelInfo.frightenedModeTime then
                     for key, _ in pairs(self.ghosts) do
                         if self.ghosts[key].state ~= self.states.EATEN then
                             self.ghosts[key].state = self.generalState
+                            self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
                             self.ghosts[key].nextFrameTime = 0.15
-                            self.ghosts[key].frightenedColor = "B"
                         end
                     end
 
                     self.isFrightened = false
                     self.pacman.ghostsEatened = 0
-                elseif (engine.timer.getTime() - self.isFrightened) > 5 then--self.currentLevelInfo.frightenedModeTime-2 then
-                    local changes, frightenedColor = math.floor((engine.timer.getTime() - self.isFrightened - (5))/0.3 + 0.5), "B"--self.currentLevelInfo.frightenedModeTime-2))/0.3 + 0.5), "B"
-                    if changes % 2 == 1 then
+                elseif frightenedTimeLeft <= 2 then--self.currentLevelInfo.frightenedModeTime-2 then
+                    local frightenedColor = "B"--self.currentLevelInfo.frightenedModeTime-2))/0.3 + 0.5), "B"
+                    local colorTimeSpan = 1/5
+                    if self.currentLevelInfo.data[13] == 1 then colorTimeSpan = 1/6 end
+                    if math.floor(frightenedTimeLeft/(colorTimeSpan) + 0.5) % 2 == 1 then
                         frightenedColor = "W"
                     end
                     for key, _ in pairs(self.ghosts) do
@@ -260,6 +292,60 @@ GameControl.LoadGameControl = function (tilePX)
                         end
                     end
                 end
+                local velocityData = 10
+                if self.pacman.isInDots == true then velocityData = 11 end
+                self.pacman.velocity = self.maxVelocity*self.currentLevelInfo.data[velocityData]
+            else
+                local velocityData = 2
+                if self.pacman.isInDots == true then velocityData = 3 end
+                self.pacman.velocity = self.maxVelocity*self.currentLevelInfo.data[velocityData]
+
+                if self.currentLevelInfo.phase ~= -1 then
+                    local acumulatedPhasesTime = 0
+                    for i, phase in ipairs(self.currentLevelInfo.shifts) do
+                        acumulatedPhasesTime = acumulatedPhasesTime + phase[2]
+
+                        if engine.timer.getTime() - self.currentLevelInfo.startTimeOffset < acumulatedPhasesTime then
+                            if self.generalState ~= phase[1] then
+                                for key, _ in pairs(self.ghosts) do
+                                    if self.ghosts[key].state ~= self.states.EATEN then
+                                        self.ghosts[key].state = phase[1]
+                                        self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
+                                    end
+                                end
+                            end
+                            self.generalState = phase[1]
+                            if i == #self.currentLevelInfo.shifts then
+                                self.currentLevelInfo.phase = -1
+                            end
+                            goto breakPhaseSelector
+                        end
+                    end
+                    ::breakPhaseSelector::
+                end
+            end
+
+            for key, _ in pairs(self.ghosts) do
+                if self.ghosts[key].state == self.states.FRIGHTENED then
+                    self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data[12]
+                elseif self.ghosts[key].state == self.states.EATEN then
+                    self.ghosts[key].velocity = self.eatenVelocity
+                elseif self.grid.TILES[self.ghosts[key].tile[1]][self.ghosts[key].tile[2]].tunnelHallway == true then
+                    self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data[5]
+                else
+                    self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data[4]
+                end
+            end
+
+            if self.grid.consumables <= self.currentLevelInfo.data[6] and self.ghosts.blinky.state == self.states.CHASE then
+                self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data[7]
+                if self.grid.consumables <= self.currentLevelInfo.data[8] then
+                    self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data[9]
+                end
+            end
+
+            if self.grid.TILES[self.ghosts.blinky.tile[1]][self.ghosts.blinky.tile[2]].tunnelHallway == true then
+                self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data[5]
             end
 
             self.pacman:update(dt)
@@ -337,8 +423,8 @@ GameControl.LoadGameControl = function (tilePX)
                 engine.graphics.draw(img, self.levelCounterCoords[1]-((i-1)*self.grid.tilePX*2)-(self.grid.tilePX), self.levelCounterCoords[2]-(self.grid.tilePX), 0, scale, scale)
             end::exit::
 
-            if self.propPopup ~= 0 then
-                Font.drawText(tostring(self.props[self.propPopup][2]), self.grid.propSpawnCoords[1], self.grid.propSpawnCoords[2] - (self.grid.tilePX/2), self.grid.tilePX*(2.3/16), {.9,.2,.9}, true)--TODO FIX THIS COLOR
+            for _, popup in ipairs(self.popups) do
+                Font.drawText(":"..tostring(popup[1]), popup[2], popup[3], self.grid.tilePX*(popup[7]/16), popup[4], true)
             end
 
             if self.prop ~= 0 then
@@ -391,11 +477,11 @@ GameControl.LoadGameControl = function (tilePX)
             Font.drawText("HIGHSCORES", engine.graphics.getWidth()/2, 305*(self.grid.tilePX/16), self.grid.tilePX*(6.5/16), {1,1,1}, true)
             for i, pair in ipairs(self.highscores) do
                 local scoreStr = ""
-                for _=1, 7-#tostring(pair[2]) do
+                for _=1, 8-#tostring(pair[2]) do
                     scoreStr = scoreStr.." "
                 end
                 scoreStr = scoreStr..tostring(pair[2])
-                Font.drawText(pair[1].." / "..scoreStr, engine.graphics.getWidth()/2, (340 + (i*45))*(self.grid.tilePX/16), self.grid.tilePX*(3.7/16), {1,1,1}, true)
+                Font.drawText(pair[1].." / "..scoreStr, engine.graphics.getWidth()/2, (340 + (i*35))*(self.grid.tilePX/16), self.grid.tilePX*(3.7/16), {1,1,1}, true)
             end
             --Main menu
         end

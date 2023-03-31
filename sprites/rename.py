@@ -12,6 +12,7 @@ spriteType = {
     "ghosts" : ("fB1","fB2","fW1","fW2","er","el","eu","ed"),
     "pacman" : ("r1","r2","l1","l2","u1","u2","d1","d2","fill","dh1","dh2","dh3","dh4","dh5","dh6","dh7","dh8","dh9","dh10","dh11"),
     "props"  : ("dot","pill","cherry","strawberry","orange","apple","melon","galaxian","bell","key"),
+    "popupfont"  : ("0","1","2","3","4","5","6","7","8"),
 } 
 
 if len(argv) > 1:
@@ -28,12 +29,5 @@ else:
             os.makedirs(dir)
 
 """
-python rename.py font
-python rename.py blinky
-python rename.py inky
-python rename.py pinky
-python rename.py clyde
-python rename.py ghosts
-python rename.py pacman
-python rename.py props
+python rename.py
 """

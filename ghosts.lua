@@ -107,7 +107,7 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
                         self.direction = {1, 0}
                     end
                 else
-                    if math.abs(self.position[1] - self.grid.ghostSpawnCenterCoordinates[1]) > 1 then
+                    if math.abs(self.position[1] - self.grid.ghostSpawnCenterCoordinates[1]) >= 3 then
                         if (self.grid.ghostSpawnCenterCoordinates[1] - self.position[1]) > 0 then
                             self.direction = {1, 0}
                         else
@@ -121,10 +121,8 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
                     end
                 end
             end
-        end
-
-        if self.spawn[1] == false then
-            if self.position[self.directionAxis] * self.direction[self.directionAxis] >=
+        else
+            if self.position[self.directionAxis] * self.direction[self.directionAxis]+1 >=
             self.grid:getCenterCoordinates(self.nextTile[1], self.nextTile[2])[self.directionAxis] * self.direction[self.directionAxis] then
                 if self.tile[2] == self.grid.eatenTargetTile[2] and (self.tile[1] == self.grid.eatenTargetTile[1] or self.tile[1] == self.grid.eatenTargetTile[1+1]) and self.state == Self.states.EATEN then
                     self.spawn = {true, "in"}
@@ -181,6 +179,13 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
                     self.directionAxis = math.abs(nextDirection[1]) + math.abs(2 * nextDirection[2])
                 end
 
+                local centerCoords = self.grid:getCenterCoordinates(self.tile[1], self.tile[2])
+                if self.direction[1] ~= 0 and self.position[2] ~= centerCoords[2] then
+                    self.position[2] = centerCoords[2]
+                elseif self.direction[2] ~= 0 and self.position[1] ~= centerCoords[1] then
+                    self.position[1] = centerCoords[1]
+                end
+
                 self.nextTile[self.directionAxis] = self.nextTile[self.directionAxis] + self.direction[self.directionAxis]
                 if self.tunnel ~= nil then
                     if self.pacman.tunnel ~= nil then
@@ -196,19 +201,14 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
             end
         end
 
-        self.position[1] = self.position[1] + (self.direction[1] * self.velocity * self.grid.tilePX * dt)
-        self.position[2] = self.position[2] + (self.direction[2] * self.velocity * self.grid.tilePX * dt)
+        if dt < .2 then
+            self.position[1] = self.position[1] + (self.direction[1] * self.velocity * self.grid.tilePX * dt)
+            self.position[2] = self.position[2] + (self.direction[2] * self.velocity * self.grid.tilePX * dt)
+        end
 
-        --if self.state == Self.states.FRIGHTENED then
-        --    self.position[1] = self.position[1] + (self.direction[1] * self.frightenedVelocity * self.grid.tilePX * dt)
-        --    self.position[2] = self.position[2] + (self.direction[2] * self.frightenedVelocity * self.grid.tilePX * dt)
-        --elseif  self.state == Self.states.EATEN then
-        --    self.position[1] = self.position[1] + (self.direction[1] * self.eatenVelocity * self.grid.tilePX * dt)
-        --    self.position[2] = self.position[2] + (self.direction[2] * self.eatenVelocity * self.grid.tilePX * dt)
-        --else
-        --    self.position[1] = self.position[1] + (self.direction[1] * self.velocity * self.grid.tilePX * dt)
-        --    self.position[2] = self.position[2] + (self.direction[2] * self.velocity * self.grid.tilePX * dt)
-        --end
+        if self.spawn[2] == "out" and self.spawn[1] == false then
+            
+        end
     end
 
 
@@ -254,6 +254,11 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
         local imgWidth, imgHeight = img:getDimensions()
         img:setFilter("nearest", "nearest")
         engine.graphics.draw(img, self.position[1]-self.grid.tilePX, self.position[2]-self.grid.tilePX, 0, self.grid.tilePX*2/imgWidth, self.grid.tilePX*2/imgHeight)
+
+        --local debugCoordinates = self.grid:getCenterCoordinates(self.tile[1], self.tile[2])
+        --engine.graphics.setColor(1,0,0)
+        --love.graphics.setPointSize(4)
+        --engine.graphics.points(debugCoordinates[1], debugCoordinates[2])
     end
 
     ghost.loadedTime = engine.timer.getTime()

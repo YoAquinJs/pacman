@@ -22,6 +22,7 @@ Pacman.LoadPacman = function (grid, gameControl)
         tile = {grid.pacmanGridInfo.startTile[1], grid.pacmanGridInfo.startTile[2]},
         centerTile = {grid.pacmanGridInfo.startTile[1], grid.pacmanGridInfo.startTile[2]},
 
+        isInDots = false,
         loadedTime = 0,
         tunnel = nil,
         stoped = false,
@@ -51,6 +52,7 @@ Pacman.LoadPacman = function (grid, gameControl)
             for key, _ in pairs(self.ghosts) do
                 if math.abs(self.ghosts[key].position[1] - self.position[1]) < self.grid.tilePX/2 and math.abs(self.ghosts[key].position[2] - self.position[2]) < self.grid.tilePX/2
                 and self.ghosts[key].state == self.states.FRIGHTENED then
+                    self.render = false
                     self.gameControl:eatGhost(key, self.ghostsEatened)
                     self.ghostsEatened = self.ghostsEatened + 1
                 end
@@ -131,8 +133,10 @@ Pacman.LoadPacman = function (grid, gameControl)
             end
         end
 
-        self.position[1] = self.position[1] + (self.direction[1] * (self.velocity + cornerBoost) * self.grid.tilePX * dt)
-        self.position[2] = self.position[2] + (self.direction[2] * (self.velocity + cornerBoost) * self.grid.tilePX * dt)
+        if dt < .2 then
+            self.position[1] = self.position[1] + (self.direction[1] * (self.velocity + cornerBoost) * self.grid.tilePX * dt)
+            self.position[2] = self.position[2] + (self.direction[2] * (self.velocity + cornerBoost) * self.grid.tilePX * dt)
+        end
     end
 
 
@@ -161,7 +165,7 @@ Pacman.LoadPacman = function (grid, gameControl)
         end
 
         if self.dying == true then
-            if (engine.timer.getTime() - self.lastFrameTime) >= (self.nextFrameTime*1.5) then
+            if (engine.timer.getTime() - self.lastFrameTime) >= (self.nextFrameTime*3.5) then
                 self.lastFrameTime = engine.timer.getTime()
                 self.frame = self.frame + 1
 
@@ -170,6 +174,8 @@ Pacman.LoadPacman = function (grid, gameControl)
                 end
 
                 self.renderSprite = "dh"..tostring(self.frame)
+
+                if self.frame < 1 then self.renderSprite = "fill" end
             end
         end
 
