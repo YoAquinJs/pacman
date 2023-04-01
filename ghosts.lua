@@ -53,6 +53,7 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
         if self.position[self.directionAxis] * self.direction[self.directionAxis] >
         (self.grid:getCoordinates(self.tile[1] + self.direction[1], self.tile[2] + self.direction[2])[self.directionAxis] + ((self.grid.tilePX-1) * (1 - self.direction[self.directionAxis])/2)) * self.direction[self.directionAxis] then
             self.tile[self.directionAxis] = self.tile[self.directionAxis] + self.direction[self.directionAxis]
+            
             if self.tunnel ~= nil then
                 self.tunnel = nil
             end
@@ -124,7 +125,7 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
         else
             if self.position[self.directionAxis] * self.direction[self.directionAxis]+1 >=
             self.grid:getCenterCoordinates(self.nextTile[1], self.nextTile[2])[self.directionAxis] * self.direction[self.directionAxis] then
-                if self.tile[2] == self.grid.eatenTargetTile[2] and (self.tile[1] == self.grid.eatenTargetTile[1] or self.tile[1] == self.grid.eatenTargetTile[1+1]) and self.state == Self.states.EATEN then
+                if self.state == Self.states.EATEN and self.tile[2] == self.grid.eatenTargetTile[2] and (self.tile[1] == self.grid.eatenTargetTile[1] or self.tile[1] == self.grid.eatenTargetTile[1+1]) then
                     self.spawn = {true, "in"}
                 end
 
@@ -204,10 +205,6 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
         if dt < .2 then
             self.position[1] = self.position[1] + (self.direction[1] * self.velocity * self.grid.tilePX * dt)
             self.position[2] = self.position[2] + (self.direction[2] * self.velocity * self.grid.tilePX * dt)
-        end
-
-        if self.spawn[2] == "out" and self.spawn[1] == false then
-            
         end
     end
 

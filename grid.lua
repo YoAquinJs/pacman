@@ -5,6 +5,9 @@ Grid.LoadGrid = function (gameControl, tilePX)
     local grid = {
         gameControl = gameControl,
 
+        consumableScale=0,
+        dotImg = engine.graphics.newImage("sprites/props/dot.png"),
+        pillImg = engine.graphics.newImage("sprites/props/pill.png"),
         tilePX = tilePX,
         TILES = {},
         tunnels = {},
@@ -25,7 +28,7 @@ Grid.LoadGrid = function (gameControl, tilePX)
         draw = function (self)
             engine.graphics.setColor(self.mazeColor[1],self.mazeColor[2],self.mazeColor[3])
             local mazeImg = "map/maze.png"
-            if self.gameControl.winTime ~= 0 then mazeImg = "map/winmaze.png" print("a") end
+            if self.gameControl.winTime ~= 0 then mazeImg = "map/winmaze.png" end
 
             local mazeImg = engine.graphics.newImage(mazeImg)
             local imgWidth, imgHeight = mazeImg:getDimensions()
@@ -34,14 +37,13 @@ Grid.LoadGrid = function (gameControl, tilePX)
             engine.graphics.draw(mazeImg, self.mazeImgCoords[1], self.mazeImgCoords[2], 0, scale, scale)
             for x=1,#self.TILES do
                 for y=1,#self.TILES[x] do
+                    engine.graphics.setColor(1,1,1)
+                    local coordinates = self:getCenterCoordinates(x, y)
+
                     if self.TILES[x][y].consumable == self.BISCUIT then--BISCUIT
-                        local coordinates = self:getCenterCoordinates(x, y)
-                        engine.graphics.setColor(1,1,1)
-                        engine.graphics.circle("fill", coordinates[1], coordinates[2] , self.tilePX/8)
-                    elseif self.TILES[x][y].consumable == self.PILL then--PILL
-                        local coordinates = self:getCenterCoordinates(x, y)
-                        engine.graphics.setColor(1,1,1)
-                        engine.graphics.circle("fill", coordinates[1], coordinates[2], self.tilePX/4)
+                        engine.graphics.draw(self.dotImg, coordinates[1]-(self.consumablesImgSize*self.consumableScale/2), coordinates[2]-(self.consumablesImgSize*self.consumableScale/2), 0, self.consumableScale, self.consumableScale)
+                    elseif self.TILES[x][y].consumable == self.PILL then--PILL`
+                        engine.graphics.draw(self.pillImg, coordinates[1]-(self.consumablesImgSize*self.consumableScale/2), coordinates[2]-(self.consumablesImgSize*self.consumableScale/2), 0, self.consumableScale, self.consumableScale)
                     end
                 end
             end
@@ -53,6 +55,9 @@ Grid.LoadGrid = function (gameControl, tilePX)
             return {(tileX * self.tilePX) - (self.tilePX*3), (tileY * self.tilePX) - (self.tilePX*2)}
         end,
         getTileContent = function (self, tileX, tileY)
+            if self.TILES[tileX] == nil or self.TILES[tileX][tileY] == nil then
+                return self.EMPTY
+            end
             return self.TILES[tileX][tileY].content
         end,
         getCenterCoordinates = function (self, tileX, tileY)
@@ -248,6 +253,12 @@ Grid.LoadGrid = function (gameControl, tilePX)
 
     grid.TILES[grid.tunnels[1][1]][grid.tunnels[1][2]].tunnelExit = {grid.tunnels[2][1], grid.tunnels[2][2]}
     grid.TILES[grid.tunnels[2][1]][grid.tunnels[2][2]].tunnelExit = {grid.tunnels[1][1], grid.tunnels[1][2]}
+
+    grid.dotImg:setFilter("nearest", "nearest")
+    grid.pillImg:setFilter("nearest", "nearest")
+    local imgWidth, imgHeight = grid.dotImg:getDimensions()
+    grid.consumableScale = grid.tilePX*2/imgWidth
+    grid.consumablesImgSize = imgWidth
 
     return grid
 end

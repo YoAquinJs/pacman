@@ -16,7 +16,7 @@ GameControl.LoadGameControl = function (tilePX)
 
         savingsFile = "savings/highscores",
         startLifes=3,
-        maxVelocity = 8,
+        maxVelocity = 9,
         eatenVelocity = 12,
         maxHighscores = 5,
         propMaxTime=10,
@@ -122,7 +122,6 @@ GameControl.LoadGameControl = function (tilePX)
         frightenedMode = function (self)
             for key, _ in pairs(self.ghosts) do
                 self.ghosts[key].state = self.states.FRIGHTENED
-                self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
                 self.ghosts[key].nextFrameTime = 0.199
                 self.ghosts[key].frightenedColor = "B"
             end
@@ -181,11 +180,11 @@ GameControl.LoadGameControl = function (tilePX)
         eatGhost = function (self, key, ghostsEatened)
             self.ghosts[key].state = self.states.EATEN
             self.ghosts[key].nextFrameTime = 0.15
-            local obtainedScore = (200 * ghostsEatened)
+            local obtainedScore = (200 * math.pow(2,ghostsEatened-1))
             self.score = self.score + obtainedScore
 
             local popupCoords = self.grid:getCenterCoordinates(self.ghosts[key].tile[1], self.ghosts[key].tile[2])
-            table.insert(self.popups, {tostring(obtainedScore), popupCoords[1], popupCoords[2] - (self.grid.tilePX/2), {0,1,1}, engine.timer.getTime(), .1, 1.7,
+            table.insert(self.popups, {tostring(obtainedScore), popupCoords[1], popupCoords[2] - (self.grid.tilePX/2), {0,1,1}, engine.timer.getTime(), .001, 2,
             done=function ()
                 for key, _ in pairs(self.ghosts) do
                     self.ghosts[key].stoped = true
@@ -197,6 +196,7 @@ GameControl.LoadGameControl = function (tilePX)
                 end
                 self.pacman.stoped = false
                 self.pacman.render = true
+                self.ghosts[key].render = true
             end})
         end,
         winLevel = function (self)
@@ -209,6 +209,7 @@ GameControl.LoadGameControl = function (tilePX)
             self.pacman.stoped = true
 
             engine.timer.sleep(.5)
+            self.pacman.render = false
             self.winTime = engine.timer.getTime()
         end
     }
@@ -272,7 +273,11 @@ GameControl.LoadGameControl = function (tilePX)
                     for key, _ in pairs(self.ghosts) do
                         if self.ghosts[key].state ~= self.states.EATEN then
                             self.ghosts[key].state = self.generalState
-                            self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
+
+                            local oppostiteDirContent = self.grid:getTileContent(self.ghosts[key].tile[1] - self.ghosts[key].direction[2], self.ghosts[key].tile[2] - self.ghosts[key].direction[2])
+                            if oppostiteDirContent ~= self.grid.WALL and oppostiteDirContent ~= self.grid.BLOCK then
+                                self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
+                            end
                             self.ghosts[key].nextFrameTime = 0.15
                         end
                     end
@@ -310,7 +315,10 @@ GameControl.LoadGameControl = function (tilePX)
                                 for key, _ in pairs(self.ghosts) do
                                     if self.ghosts[key].state ~= self.states.EATEN then
                                         self.ghosts[key].state = phase[1]
-                                        self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
+                                        local oppostiteDirContent = self.grid:getTileContent(self.ghosts[key].tile[1] - self.ghosts[key].direction[2], self.ghosts[key].tile[2] - self.ghosts[key].direction[2])
+                                        if oppostiteDirContent ~= self.grid.WALL and oppostiteDirContent ~= self.grid.BLOCK then
+                                            self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
+                                        end
                                     end
                                 end
                             end
@@ -353,7 +361,7 @@ GameControl.LoadGameControl = function (tilePX)
             self.ghosts.clyde:update(dt)
             self.ghosts.inky:update(dt)
             self.ghosts.pinky:update(dt)
-        elseif self.currentLevel == 0 then
+    elseif self.currentLevel == 0 then
             if Input.right == true or Input.left == true or Input.up == true or Input.down == true or Input.start == true then
                 self.currentLevel = -1
             end
@@ -423,10 +431,6 @@ GameControl.LoadGameControl = function (tilePX)
                 engine.graphics.draw(img, self.levelCounterCoords[1]-((i-1)*self.grid.tilePX*2)-(self.grid.tilePX), self.levelCounterCoords[2]-(self.grid.tilePX), 0, scale, scale)
             end::exit::
 
-            for _, popup in ipairs(self.popups) do
-                Font.drawText(":"..tostring(popup[1]), popup[2], popup[3], self.grid.tilePX*(popup[7]/16), popup[4], true)
-            end
-
             if self.prop ~= 0 then
                 local img, scale = engine.graphics.newImage("sprites/props/"..self.props[self.prop][1]..".png"), self.grid.tilePX*(2/16)
                 local imgWidth, imgHeight = img:getDimensions()
@@ -442,16 +446,20 @@ GameControl.LoadGameControl = function (tilePX)
             self.ghosts.clyde:draw()
             self.ghosts.inky:draw()
             self.ghosts.pinky:draw()
+
+            for _, popup in ipairs(self.popups) do
+                Font.drawText(":"..tostring(popup[1]), popup[2], popup[3], self.grid.tilePX*(popup[7]/16), popup[4], true)
+            end
         elseif self.currentLevel == 0 then
             local timePastDeath = (engine.timer.getTime() - self.deathTime)
             if timePastDeath <= 1 then
-                Font.drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], 3, {1,0,0}, true)
+                Font.drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], self.grid.tilePX*(3/16), {1,0,0}, true)
                 self.grid:draw()
             elseif timePastDeath <= 2 then
-                Font.drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], 3, {1,0,0}, true)
+                Font.drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], self.grid.tilePX*(3/16), {1,0,0}, true)
             else
-                Font.drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], 3, {1,0,0}, true)
-                Font.drawText("PRESS ANY KEY TO CONTINUE", self.pressAnyKeyLabel[1], self.pressAnyKeyLabel[2], 2, {1,1,1})
+                Font.drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], self.grid.tilePX*(3/16), {1,0,0}, true)
+                Font.drawText("PRESS ANY KEY TO CONTINUE", engine.graphics.getWidth()/2, self.pressAnyKeyLabel[2], self.grid.tilePX*(2/16), {1,1,1}, true)
             end
         else
             engine.graphics.setColor(1,1,1)

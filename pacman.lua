@@ -50,9 +50,10 @@ Pacman.LoadPacman = function (grid, gameControl)
 
         if self.ghostsEatened > 0 then
             for key, _ in pairs(self.ghosts) do
-                if math.abs(self.ghosts[key].position[1] - self.position[1]) < self.grid.tilePX/2 and math.abs(self.ghosts[key].position[2] - self.position[2]) < self.grid.tilePX/2
+                if math.abs(self.position[1] - self.ghosts[key].position[1]) < (self.grid.tilePX/2) and math.abs(self.position[2] - self.ghosts[key].position[2]) < (self.grid.tilePX/2)
                 and self.ghosts[key].state == self.states.FRIGHTENED then
                     self.render = false
+                    self.ghosts[key].render = false
                     self.gameControl:eatGhost(key, self.ghostsEatened)
                     self.ghostsEatened = self.ghostsEatened + 1
                 end
@@ -186,14 +187,6 @@ Pacman.LoadPacman = function (grid, gameControl)
             img:setFilter("nearest", "nearest")
             engine.graphics.draw(img, self.position[1]-self.grid.tilePX+1, self.position[2]-self.grid.tilePX+1, 0, self.grid.tilePX*2/imgWidth, self.grid.tilePX*2/imgHeight)
         end
-        --engine.graphics.setColor(1,0,0)
-        --love.graphics.setPointSize(2)
-        --engine.graphics.points(self.position[1], self.position[2])
-        --engine.graphics.setColor(0,0,1)
-        --love.graphics.setPointSize(2)
-        --local debugCoordinates = self.grid:getCenterCoordinates(self.tile[1], self.tile[2])
-        --engine.graphics.points(debugCoordinates[1], debugCoordinates[2])
-        --engine.graphics.rectangle("line", debugCoordinates[1], debugCoordinates[2], self.grid.tilePX, self.grid.tilePX)
     end
 
     pacman.loadedTime = engine.timer.getTime()
