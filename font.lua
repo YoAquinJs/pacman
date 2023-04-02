@@ -1,6 +1,8 @@
 Font = {}
 
 Font.drawText = function (text, x, y, scale, color, centerd, shadowColor, rotation)
+    text = string.lower(text)
+
     if rotation == nil then rotation = 0 end
     local charSize, zeroCount = 6, 0
 

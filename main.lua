@@ -23,7 +23,6 @@ end
 function engine.draw()
     GameControl:draw()
     engine.graphics.setColor(1,1,1)
-    engine.graphics.print(tostring(engine.timer.getFPS()), 5,5)
 end
 
 --TODO
