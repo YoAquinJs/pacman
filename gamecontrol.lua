@@ -1,9 +1,7 @@
 require("pacman")
 require("ghosts")
 require("grid")
-require("font")
 
-_G.Font = Font
 GameControl = {}
 
 GameControl.LoadGameControl = function (tilePX)
@@ -51,7 +49,7 @@ GameControl.LoadGameControl = function (tilePX)
             levelData = {
 --1           2           3              4          5                6          7           8          9           10                 11                  12               13
 --BonusSymbol/PacmanSpeed/PacmanDotSpeed/GhostSpeed/GhostTunnelSpeed/Elroy1Dots/Elroy1Speed/Elroy2Dots/Elroy2Speed/PacmanFrightSpeed/PacmanFrightDotSpeed/GhostFrightSpeed/FrightTime
-{ 0,          0.80,       0.71,          0.75,      0.40,             20,       0.80,       10,        0.85,       0.90,             0.79,                0.50,            6}, --  1
+{ 1,          0.80,       0.71,          0.75,      0.40,             20,       0.80,       10,        0.85,       0.90,             0.79,                0.50,            6}, --  1
 { 2,          0.90,       0.79,          0.85,      0.45,             30,       0.90,       15,        0.95,       0.95,             0.83,                0.55,            5}, --  2
 { 3,          0.90,       0.79,          0.85,      0.45,             40,       0.90,       20,        0.95,       0.95,             0.83,                0.55,            4}, --  3
 { 3,          0.90,       0.79,          0.85,      0.45,             40,       0.90,       20,        0.95,       0.95,             0.83,                0.55,            3}, --  4
@@ -260,10 +258,10 @@ GameControl.LoadGameControl = function (tilePX)
             end
 
             local pastIsInDots = self.pacman.isInDots
-            self.pacman.isInDots = self.grid.TILES[self.pacman.tile[1]][self.pacman.tile[2]].consumable ~= nil
+            self.pacman.isInDots = self.grid:getTileContent(self.pacman.tile[1], self.pacman.tile[2]).consumable ~= nil
 
             if self.pacman.isInDots == false and pastIsInDots == true and
-            self.grid.TILES[self.pacman.tile[1]+self.pacman.direction[1]][self.pacman.tile[2]+self.pacman.direction[2]].consumable ~= nil then
+            self.grid:getTileContent(self.pacman.tile[1]+self.pacman.direction[1], self.pacman.tile[2]+self.pacman.direction[2]).consumable ~= nil then
                 self.pacman.isInDots = true
             end
 
@@ -274,7 +272,7 @@ GameControl.LoadGameControl = function (tilePX)
                         if self.ghosts[key].state ~= self.states.EATEN then
                             self.ghosts[key].state = self.generalState
 
-                            local oppostiteDirContent = self.grid:getTileContent(self.ghosts[key].tile[1] - self.ghosts[key].direction[2], self.ghosts[key].tile[2] - self.ghosts[key].direction[2])
+                            local oppostiteDirContent = self.grid:getTileContent(self.ghosts[key].tile[1] - self.ghosts[key].direction[2], self.ghosts[key].tile[2] - self.ghosts[key].direction[2]).content
                             if oppostiteDirContent ~= self.grid.WALL and oppostiteDirContent ~= self.grid.BLOCK then
                                 self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
                             end
@@ -315,7 +313,7 @@ GameControl.LoadGameControl = function (tilePX)
                                 for key, _ in pairs(self.ghosts) do
                                     if self.ghosts[key].state ~= self.states.EATEN then
                                         self.ghosts[key].state = phase[1]
-                                        local oppostiteDirContent = self.grid:getTileContent(self.ghosts[key].tile[1] - self.ghosts[key].direction[2], self.ghosts[key].tile[2] - self.ghosts[key].direction[2])
+                                        local oppostiteDirContent = self.grid:getTileContent(self.ghosts[key].tile[1] - self.ghosts[key].direction[2], self.ghosts[key].tile[2] - self.ghosts[key].direction[2]).content
                                         if oppostiteDirContent ~= self.grid.WALL and oppostiteDirContent ~= self.grid.BLOCK then
                                             self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
                                         end
@@ -338,7 +336,7 @@ GameControl.LoadGameControl = function (tilePX)
                     self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data[12]
                 elseif self.ghosts[key].state == self.states.EATEN then
                     self.ghosts[key].velocity = self.eatenVelocity
-                elseif self.grid.TILES[self.ghosts[key].tile[1]][self.ghosts[key].tile[2]].tunnelHallway == true then
+                elseif self.grid:getTileContent(self.ghosts[key].tile[1], self.ghosts[key].tile[2]).tunnelHallway == true then
                     self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data[5]
                 else
                     self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data[4]
@@ -352,7 +350,7 @@ GameControl.LoadGameControl = function (tilePX)
                 end
             end
 
-            if self.grid.TILES[self.ghosts.blinky.tile[1]][self.ghosts.blinky.tile[2]].tunnelHallway == true then
+            if self.grid:getTileContent(self.ghosts.blinky.tile[1], self.ghosts.blinky.tile[2]).tunnelHallway == true then
                 self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data[5]
             end
 
@@ -362,25 +360,25 @@ GameControl.LoadGameControl = function (tilePX)
             self.ghosts.inky:update(dt)
             self.ghosts.pinky:update(dt)
     elseif self.currentLevel == 0 then
-            if Input.right == true or Input.left == true or Input.up == true or Input.down == true or Input.start == true then
+            if Utils.input.right == true or Utils.input.left == true or Utils.input.up == true or Utils.input.down == true or Utils.input.start == true then
                 self.currentLevel = -1
             end
         else
             if engine.timer.getTime() - self.nameTag[3] > 0.15 then
-                if Input.left then
+                if Utils.input.left then
                     self.nameTag[1] = self.nameTag[1] - 1
                     if self.nameTag[1] == 0 then self.nameTag[1] = #self.nameTag[2] end
                     self.nameTag[3] = engine.timer.getTime()
-                elseif Input.right then
+                elseif Utils.input.right then
                     self.nameTag[1] = self.nameTag[1] + 1
                     if self.nameTag[1] == #self.nameTag[2]+1 then self.nameTag[1] = 1 end
                     self.nameTag[3] = engine.timer.getTime()
-                elseif Input.up then
+                elseif Utils.input.up then
                     self.nameTag[2][self.nameTag[1]] = self.nameTag[2][self.nameTag[1]] + 1
                     if self.nameTag[2][self.nameTag[1]] == 58 then self.nameTag[2][self.nameTag[1]] = 65 end
                     if self.nameTag[2][self.nameTag[1]] == 91 then self.nameTag[2][self.nameTag[1]] = 48 end
                     self.nameTag[3] = engine.timer.getTime()
-                elseif Input.down then
+                elseif Utils.input.down then
                     self.nameTag[2][self.nameTag[1]] = self.nameTag[2][self.nameTag[1]] - 1
                     if self.nameTag[2][self.nameTag[1]] == 47 then self.nameTag[2][self.nameTag[1]] = 90 end
                     if self.nameTag[2][self.nameTag[1]] == 64 then self.nameTag[2][self.nameTag[1]] = 57 end
@@ -388,7 +386,7 @@ GameControl.LoadGameControl = function (tilePX)
                 end
             end
 
-            if Input.start == true then
+            if Utils.input.start == true then
                 for _, pair in ipairs(self.highscores) do
                     if pair[1] == self:getNameTag() then
                         --make sound
@@ -403,15 +401,13 @@ GameControl.LoadGameControl = function (tilePX)
 
     gameControl.draw = function (self)
         if self.currentLevel > 0 then
-            Font.drawText("HIGH SCORE", engine.graphics.getWidth()/2, self.highScoreLabelCoords[2], self.grid.tilePX*(2.6/16), {1,1,1}, true)
-            Font.drawText(tostring(self.highscores[1][2]), engine.graphics.getWidth()/2, self.highScoreValueCoords[2], self.grid.tilePX*(2.6/16), {1,1,1}, true)
-            Font.drawText(tostring(self.score), self.scoreCounterCoords[1]-(self.grid.tilePX*(#tostring(self.score))), self.scoreCounterCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
-            Font.drawText(self:getNameTag(), self.nameTagCoords[1], self.nameTagCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
+            Utils:drawText("HIGH SCORE", engine.graphics.getWidth()/2, self.highScoreLabelCoords[2], self.grid.tilePX*(2.6/16), {1,1,1}, true)
+            Utils:drawText(tostring(self.highscores[1][2]), engine.graphics.getWidth()/2, self.highScoreValueCoords[2], self.grid.tilePX*(2.6/16), {1,1,1}, true)
+            Utils:drawText(tostring(self.score), self.scoreCounterCoords[1]-(self.grid.tilePX*(#tostring(self.score))), self.scoreCounterCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
+            Utils:drawText(self:getNameTag(), self.nameTagCoords[1], self.nameTagCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
             for i = 0, self.lifes-2 do
-                engine.graphics.setColor(1,1,1)
-                local img, scale = engine.graphics.newImage("sprites/pacman/r2.png"), self.grid.tilePX*(1.8/16)
-                img:setFilter("nearest", "nearest")
-                engine.graphics.draw(img, self.lifesCounterCoords[1]+(i*self.grid.tilePX*2)-(self.grid.tilePX), self.lifesCounterCoords[2]-(self.grid.tilePX), 0, scale, scale)
+                local img, scale = "/pacman/r2", self.grid.tilePX*(1.8/16)
+                Utils:draw(img, self.lifesCounterCoords[1]+(i*self.grid.tilePX*2)-(self.grid.tilePX), self.lifesCounterCoords[2]-(self.grid.tilePX), scale, {1,1,1})
             end
 
             for i=1, 8 do
@@ -425,19 +421,13 @@ GameControl.LoadGameControl = function (tilePX)
                     sprite = self.props[_sprite][1]
                 end
 
-                local img = engine.graphics.newImage("sprites/props/"..sprite..".png")
-                engine.graphics.setColor(1,1,1)
-                img:setFilter("nearest", "nearest")
-                engine.graphics.draw(img, self.levelCounterCoords[1]-((i-1)*self.grid.tilePX*2)-(self.grid.tilePX), self.levelCounterCoords[2]-(self.grid.tilePX), 0, scale, scale)
+                local img = "props/"..sprite
+                Utils:draw(img, self.levelCounterCoords[1]-((i-1)*self.grid.tilePX*2)-(self.grid.tilePX), self.levelCounterCoords[2]-(self.grid.tilePX), scale, {1,1,1})
             end::exit::
 
             if self.prop ~= 0 then
-                local img, scale = engine.graphics.newImage("sprites/props/"..self.props[self.prop][1]..".png"), self.grid.tilePX*(2/16)
-                local imgWidth, imgHeight = img:getDimensions()
-
-                engine.graphics.setColor(1,1,1)
-                img:setFilter("nearest", "nearest")
-                engine.graphics.draw(img, self.grid.propSpawnCoords[1] - (imgWidth*scale/2), self.grid.propSpawnCoords[2] - (imgHeight*scale/2), 0, scale, scale)
+                local img, scale, imgSize = "props/"..self.props[self.prop][1], self.grid.tilePX*(2/16), Utils:getImgSize("props/"..self.props[self.prop][1])
+                Utils:draw(img, self.grid.propSpawnCoords[1] - (imgSize*scale/2), self.grid.propSpawnCoords[2] - (imgSize*scale/2), scale, {1,1,1})
             end
 
             self.grid:draw()
@@ -448,50 +438,45 @@ GameControl.LoadGameControl = function (tilePX)
             self.ghosts.pinky:draw()
 
             for _, popup in ipairs(self.popups) do
-                Font.drawText(":"..tostring(popup[1]), popup[2], popup[3], self.grid.tilePX*(popup[7]/16), popup[4], true)
+                Utils:drawText(":"..tostring(popup[1]), popup[2], popup[3], self.grid.tilePX*(popup[7]/16), popup[4], true)
             end
         elseif self.currentLevel == 0 then
             local timePastDeath = (engine.timer.getTime() - self.deathTime)
             if timePastDeath <= 1 then
-                Font.drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], self.grid.tilePX*(3/16), {1,0,0}, true)
+                Utils:drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], self.grid.tilePX*(3/16), {1,0,0}, true)
                 self.grid:draw()
             elseif timePastDeath <= 2 then
-                Font.drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], self.grid.tilePX*(3/16), {1,0,0}, true)
+                Utils:drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], self.grid.tilePX*(3/16), {1,0,0}, true)
             else
-                Font.drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], self.grid.tilePX*(3/16), {1,0,0}, true)
-                Font.drawText("PRESS ANY KEY TO CONTINUE", engine.graphics.getWidth()/2, self.pressAnyKeyLabel[2], self.grid.tilePX*(2/16), {1,1,1}, true)
+                Utils:drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], self.grid.tilePX*(3/16), {1,0,0}, true)
+                Utils:drawText("PRESS ANY KEY TO CONTINUE", engine.graphics.getWidth()/2, self.pressAnyKeyLabel[2], self.grid.tilePX*(2/16), {1,1,1}, true)
             end
         else
-            engine.graphics.setColor(1,1,1)
-            local titleImg, scale = engine.graphics.newImage("sprites/title.png"), self.grid.tilePX*(2.2/16)
-            local imgWidth, imgHeight = titleImg:getDimensions()
-            titleImg:setFilter("nearest", "nearest")
-            engine.graphics.draw(titleImg, (engine.graphics.getWidth() - (imgWidth*scale))/2,  40*(self.grid.tilePX/16), 0, scale, scale)
+            local img, scale, imgSize = "title", self.grid.tilePX*(2.2/16), Utils:getImgSize("title")
+            Utils:draw(img, (engine.graphics.getWidth() - (imgSize*scale))/2,  40*(self.grid.tilePX/16), scale, {1,1,1})
 
-
-            Font.drawText("PLAYER", engine.graphics.getWidth()/2, 170*(self.grid.tilePX/16), self.grid.tilePX*(6/16), {1,1,0}, true)
+            Utils:drawText("PLAYER", engine.graphics.getWidth()/2, 160*(self.grid.tilePX/16), self.grid.tilePX*(6/16), {1,1,0}, true)
             for i, char in ipairs(self.nameTag[2]) do
-                local color, scale, adjust = {.2,.2,.6}, self.grid.tilePX*(7.5/16), 0
+                local color, scale, adjust = {.2,.2,.6}, self.grid.tilePX*(8/16), 0
                 if i == self.nameTag[1] then
-                    scale = self.grid.tilePX*(8.5/16)
-                    adjust = 5*(self.grid.tilePX/16)
+                    scale = self.grid.tilePX*(9/16)
+                    adjust = 4*(self.grid.tilePX/16)
                     if engine.timer.getTime() - math.floor(engine.timer.getTime()) < 0.5 then
                         color = {.2,.2,1}
                     end
                 end
-                Font.drawText(string.char(char), engine.graphics.getWidth()/2 + (8.5*self.grid.tilePX*(6/16)*(i-3)), (230*(self.grid.tilePX/16)) - adjust, scale, {1,1,0}, true, color)
+                Utils:drawText(string.char(char), engine.graphics.getWidth()/2 + (9*self.grid.tilePX*(6/16)*(i-3)), (220*(self.grid.tilePX/16)) - adjust, scale, {1,1,0}, true, color)
             end
 
-            Font.drawText("HIGHSCORES", engine.graphics.getWidth()/2, 305*(self.grid.tilePX/16), self.grid.tilePX*(6.5/16), {1,1,1}, true)
+            Utils:drawText("HIGHSCORES", engine.graphics.getWidth()/2, 305*(self.grid.tilePX/16), self.grid.tilePX*(6.5/16), {1,1,1}, true)
             for i, pair in ipairs(self.highscores) do
                 local scoreStr = ""
                 for _=1, 8-#tostring(pair[2]) do
                     scoreStr = scoreStr.." "
                 end
                 scoreStr = scoreStr..tostring(pair[2])
-                Font.drawText(pair[1].." / "..scoreStr, engine.graphics.getWidth()/2, (340 + (i*35))*(self.grid.tilePX/16), self.grid.tilePX*(3.7/16), {1,1,1}, true)
+                Utils:drawText(pair[1].." / "..scoreStr, engine.graphics.getWidth()/2, (340 + (i*35))*(self.grid.tilePX/16), self.grid.tilePX*(3.7/16), {1,1,1}, true)
             end
-            --Main menu
         end
     end
 

@@ -43,8 +43,9 @@ Pacman.LoadPacman = function (grid, gameControl)
                 self.tunnel = nil
             end
 
-            if self.grid:getTileContent(self.tile[1], self.tile[2]) == self.grid.TUNNEL then
-                self.tunnel = {self.grid.TILES[self.tile[1]][self.tile[2]].tunnelExit[1], self.grid.TILES[self.tile[1]][self.tile[2]].tunnelExit[2]}
+            if self.grid:getTileContent(self.tile[1], self.tile[2]).content == self.grid.TUNNEL then
+                local tunnelTile = self.grid:getTileContent(self.tile[1], self.tile[2])
+                self.tunnel = {tunnelTile.tunnelExit[1], tunnelTile.tunnelExit[2]}
             end
         end
 
@@ -61,14 +62,14 @@ Pacman.LoadPacman = function (grid, gameControl)
         end
 
         if self.tunnel == nil then
-            if Input.up and self.grid:getTileContent(self.tile[1], self.tile[2] - 1) ~= self.grid.WALL then
+            if Utils.input.up and self.grid:getTileContent(self.tile[1], self.tile[2] - 1).content ~= self.grid.WALL then
                 self.nextDirection = {0, -1}
                 if self.directionAxis == 2 then
                     self.direction[2] = -1
                 end
             end
-            if Input.down then
-                local nextTileContent = self.grid:getTileContent(self.tile[1], self.tile[2] + 1)
+            if Utils.input.down then
+                local nextTileContent = self.grid:getTileContent(self.tile[1], self.tile[2] + 1).content
                 if nextTileContent ~= self.grid.WALL and nextTileContent ~= self.grid.BLOCK then
                     self.nextDirection = {0, 1}
                     if self.directionAxis == 2 then
@@ -76,13 +77,13 @@ Pacman.LoadPacman = function (grid, gameControl)
                     end
                 end
             end
-            if Input.left and self.grid:getTileContent(self.tile[1] - 1, self.tile[2]) ~= self.grid.WALL then
+            if Utils.input.left and self.grid:getTileContent(self.tile[1] - 1, self.tile[2]).content ~= self.grid.WALL then
                 self.nextDirection = {-1, 0}
                 if self.directionAxis == 1 then
                     self.direction[1] = -1
                 end
             end
-            if Input.right and self.grid:getTileContent(self.tile[1] + 1, self.tile[2]) ~= self.grid.WALL then
+            if Utils.input.right and self.grid:getTileContent(self.tile[1] + 1, self.tile[2]).content ~= self.grid.WALL then
                 self.nextDirection = {1, 0}
                 if self.directionAxis == 1 then
                     self.direction[1] = 1
@@ -96,20 +97,21 @@ Pacman.LoadPacman = function (grid, gameControl)
             if self.direction[1] ~= 0 or self.direction[2] ~= 0 then
                 self.centerTile[self.directionAxis] = self.centerTile[self.directionAxis] + self.direction[self.directionAxis]
             end
-            local nextTileContent = self.grid:getTileContent(self.tile[1] + self.nextDirection[1], self.tile[2] + self.nextDirection[2])
+            local nextTileContent = self.grid:getTileContent(self.tile[1] + self.nextDirection[1], self.tile[2] + self.nextDirection[2]).content
             if nextTileContent ~= self.grid.WALL and nextTileContent ~= self.grid.BLOCK then
                 self.direction = {self.nextDirection[1], self.nextDirection[2]}
                 self.facing = {self.direction[1], self.direction[2]}
                 self.directionAxis = math.abs(1 * self.direction[1]) + math.abs(2 * self.direction[2])
             end
 
-            nextTileContent = self.grid:getTileContent(self.tile[1] + self.direction[1], self.tile[2] + self.direction[2])
+            nextTileContent = self.grid:getTileContent(self.tile[1] + self.direction[1], self.tile[2] + self.direction[2]).content
             if nextTileContent == self.grid.WALL or nextTileContent == self.grid.BLOCK then
                 self.direction[self.directionAxis] = 0
             end
 
-            if self.grid.TILES[self.tile[1]][self.tile[2]].consumable ~= nil then
-                self.grid:consume(self.grid.TILES[self.tile[1]][self.tile[2]].consumable, self.tile[1], self.tile[2])
+            local consumable = self.grid:getTileContent(self.tile[1], self.tile[2]).consumable
+            if consumable ~= nil then
+                self.grid:consume(consumable, self.tile[1], self.tile[2])
             end
 
             if self.tunnel ~= nil then
@@ -128,7 +130,7 @@ Pacman.LoadPacman = function (grid, gameControl)
         end
 
         local cornerBoost = 0
-        if self.grid.TILES[self.tile[1]][self.tile[2]].isIntersection == true then
+        if self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true then
             if ((self.nextDirection[1] ~= 0 and self.directionAxis == 2) or (self.nextDirection[2] ~= 0 and self.directionAxis == 1)) and self.passedCenter == false then
                 cornerBoost = 3
             end
@@ -181,11 +183,8 @@ Pacman.LoadPacman = function (grid, gameControl)
         end
 
         if self.frame < 12 then
-            engine.graphics.setColor(1,1,1)
-            local img = engine.graphics.newImage("sprites/pacman/"..self.renderSprite..".png")
-            local imgWidth, imgHeight = img:getDimensions()
-            img:setFilter("nearest", "nearest")
-            engine.graphics.draw(img, self.position[1]-self.grid.tilePX+1, self.position[2]-self.grid.tilePX+1, 0, self.grid.tilePX*2/imgWidth, self.grid.tilePX*2/imgHeight)
+            local img = "pacman/"..self.renderSprite
+            Utils:draw(img, self.position[1]-self.grid.tilePX+1, self.position[2]-self.grid.tilePX+1, self.grid.tilePX*2/Utils:getImgSize(img), {1,1,1})
         end
     end
 

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 sourceDir=$(pwd)
-destinationZip="$sourceDir/compressed.zip"
+destinationZip="$sourceDir/pacman.love"
 excludeExtensions=("love" "gitignore" "ps1" "md" "sh" "zip")
 excludeFolders=(".vscode" ".git")
 

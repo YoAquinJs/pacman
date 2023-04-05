@@ -53,18 +53,19 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
         if self.position[self.directionAxis] * self.direction[self.directionAxis] >
         (self.grid:getCoordinates(self.tile[1] + self.direction[1], self.tile[2] + self.direction[2])[self.directionAxis] + ((self.grid.tilePX-1) * (1 - self.direction[self.directionAxis])/2)) * self.direction[self.directionAxis] then
             self.tile[self.directionAxis] = self.tile[self.directionAxis] + self.direction[self.directionAxis]
-            
+
             if self.tunnel ~= nil then
                 self.tunnel = nil
             end
 
-            if self.grid:getTileContent(self.tile[1], self.tile[2]) == self.grid.TUNNEL then
-                self.tunnel = {self.grid.TILES[self.tile[1]][self.tile[2]].tunnelExit[1], self.grid.TILES[self.tile[1]][self.tile[2]].tunnelExit[2]}
+            if self.grid:getTileContent(self.tile[1], self.tile[2]).content == self.grid.TUNNEL then
+                local tunnelTile = self.grid:getTileContent(self.tile[1], self.tile[2])
+                self.tunnel = {tunnelTile.tunnelExit[1], tunnelTile.tunnelExit[2]}
             end
 
         end
 
-        if math.abs(self.pacman.position[1] - self.position[1]) < (self.grid.tilePX/2) and math.abs(self.pacman.position[2] - self.position[2]) < (self.grid.tilePX/2)
+        if math.abs(self.pacman.position[1] - self.position[1]) <= (self.grid.tilePX/3) and math.abs(self.pacman.position[2] - self.position[2]) <= (self.grid.tilePX/3)
         and self.state ~= Self.states.FRIGHTENED and self.state ~= Self.states.EATEN then
             self.gameControl:eatPacman()
         end
@@ -129,14 +130,14 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
                     self.spawn = {true, "in"}
                 end
 
-                if self.grid.TILES[self.tile[1]][self.tile[2]].isIntersection == true then
+                if self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true then
                     self.target = self:getTarget()
                     local closestDistance, nextDirection, distance, possibleRoute = 100000, {0, 0}, 0, {}
 
-                    possibleRoute[1] = self.grid:getTileContent(self.tile[1]+1, self.tile[2]) ~= self.grid.WALL and self.direction[1] ~= -1 --Right
-                    possibleRoute[2] = self.grid:getTileContent(self.tile[1], self.tile[2]+1) ~= self.grid.WALL and self.direction[2] ~= -1 --Down
-                    possibleRoute[3] = self.grid:getTileContent(self.tile[1]-1, self.tile[2]) ~= self.grid.WALL and self.direction[1] ~= 1 --Left
-                    possibleRoute[4] = self.grid:getTileContent(self.tile[1], self.tile[2]-1) ~= self.grid.WALL and self.direction[2] ~= 1 --Up
+                    possibleRoute[1] = self.grid:getTileContent(self.tile[1]+1, self.tile[2]).content ~= self.grid.WALL and self.direction[1] ~= -1 --Right
+                    possibleRoute[2] = self.grid:getTileContent(self.tile[1], self.tile[2]+1).content ~= self.grid.WALL and self.direction[2] ~= -1 --Down
+                    possibleRoute[3] = self.grid:getTileContent(self.tile[1]-1, self.tile[2]).content ~= self.grid.WALL and self.direction[1] ~= 1 --Left
+                    possibleRoute[4] = self.grid:getTileContent(self.tile[1], self.tile[2]-1).content ~= self.grid.WALL and self.direction[2] ~= 1 --Up
 
                     if self.state == Self.states.FRIGHTENED then
                         local random = math.floor(math.random(1, 4))
@@ -246,11 +247,8 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name)
                 self.renderType = self.name
             end
         end
-        engine.graphics.setColor(1,1,1)
-        local img = engine.graphics.newImage("sprites/"..self.renderType.."/"..self.renderSprite..".png")
-        local imgWidth, imgHeight = img:getDimensions()
-        img:setFilter("nearest", "nearest")
-        engine.graphics.draw(img, self.position[1]-self.grid.tilePX, self.position[2]-self.grid.tilePX, 0, self.grid.tilePX*2/imgWidth, self.grid.tilePX*2/imgHeight)
+        local img = self.renderType.."/"..self.renderSprite
+        Utils:draw(img, self.position[1]-self.grid.tilePX, self.position[2]-self.grid.tilePX, self.grid.tilePX*2/Utils:getImgSize(img), {1,1,1})
 
         --local debugCoordinates = self.grid:getCenterCoordinates(self.tile[1], self.tile[2])
         --engine.graphics.setColor(1,0,0)
@@ -293,7 +291,7 @@ Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman)
         end
     end
 
-    Inky.startTimeInSpawn = 4
+    Inky.startTimeInSpawn = 2
     Inky.direction = {1, 0}
     Inky.getTarget = function (self)
         if self.state == Self.states.SCATTER then
@@ -310,7 +308,7 @@ Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman)
         end
     end
 
-    Clyde.startTimeInSpawn = 8
+    Clyde.startTimeInSpawn = 5
     Clyde.direction = {-1, 0}
     Clyde.getTarget = function (self)
         if self.state == Self.states.SCATTER then
