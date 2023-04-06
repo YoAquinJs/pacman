@@ -27,7 +27,7 @@ Grid.LoadGrid = function (gameControl, tilePX)
             local mazeImg = "maze/maze"
             if self.gameControl.winTime ~= 0 then mazeImg = "maze/winmaze" end
 
-            Utils:draw(mazeImg, self.mazeImgCoords[1], self.mazeImgCoords[2], self.tilePX/(Utils:getImgSize(mazeImg)/(#self.TILES-4)), {1,1,1})
+            Utils:draw(mazeImg, self.mazeImgCoords[1], self.mazeImgCoords[2], self.tilePX/(Utils:getImgSize(mazeImg)/(#self.TILES-4)), self.mazeColor)
 
             for x=1,#self.TILES do
                 for y=1,#self.TILES[x] do

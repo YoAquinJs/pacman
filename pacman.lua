@@ -8,10 +8,9 @@ Pacman.LoadPacman = function (grid, gameControl)
         states = nil,
         ghostsEatened = 0,
 
-        startIdleTime = 1,
         lastFrameTime = 0,
         nextFrameTime = 0.07,
-        frame = 0,
+        frame = 1,
         renderSprite = "fill",
         position = {grid.pacmanGridInfo.startPosition[1], grid.pacmanGridInfo.startPosition[2]},
         velocity = 8,
@@ -23,7 +22,6 @@ Pacman.LoadPacman = function (grid, gameControl)
         centerTile = {grid.pacmanGridInfo.startTile[1], grid.pacmanGridInfo.startTile[2]},
 
         isInDots = false,
-        loadedTime = 0,
         tunnel = nil,
         stoped = false,
         render = true,
@@ -31,7 +29,7 @@ Pacman.LoadPacman = function (grid, gameControl)
     }
 
     pacman.update = function (self, dt)
-        if engine.timer.getTime() - self.loadedTime < self.startIdleTime or self.stoped == true then
+        if self.stoped == true or self.gameControl.frameCount < 2 then
             return
         end
 
@@ -92,7 +90,7 @@ Pacman.LoadPacman = function (grid, gameControl)
         end
 
         if self.position[self.directionAxis] * self.direction[self.directionAxis] >=
-           self.grid:getCenterCoordinates(self.centerTile[1], self.centerTile[2])[self.directionAxis] * self.direction[self.directionAxis] then
+            self.grid:getCenterCoordinates(self.centerTile[1], self.centerTile[2])[self.directionAxis] * self.direction[self.directionAxis] then
 
             if self.direction[1] ~= 0 or self.direction[2] ~= 0 then
                 self.centerTile[self.directionAxis] = self.centerTile[self.directionAxis] + self.direction[self.directionAxis]
@@ -129,16 +127,16 @@ Pacman.LoadPacman = function (grid, gameControl)
             self.position[1] = centerCoords[1]
         end
 
-        local cornerBoost = 0
+        local cornerBoost = 1
         if self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true then
-            if ((self.nextDirection[1] ~= 0 and self.directionAxis == 2) or (self.nextDirection[2] ~= 0 and self.directionAxis == 1)) and self.passedCenter == false then
-                cornerBoost = 3
+            if ((self.nextDirection[1] ~= 0 and self.directionAxis == 2) or (self.nextDirection[2] ~= 0 and self.directionAxis == 1)) then
+                cornerBoost = 1.5
             end
         end
 
         if dt < .2 then
-            self.position[1] = self.position[1] + (self.direction[1] * (self.velocity + cornerBoost) * self.grid.tilePX * dt)
-            self.position[2] = self.position[2] + (self.direction[2] * (self.velocity + cornerBoost) * self.grid.tilePX * dt)
+            self.position[1] = self.position[1] + (self.direction[1] * (self.velocity*cornerBoost) * self.grid.tilePX * dt)
+            self.position[2] = self.position[2] + (self.direction[2] * (self.velocity*cornerBoost) * self.grid.tilePX * dt)
         end
     end
 
@@ -146,9 +144,9 @@ Pacman.LoadPacman = function (grid, gameControl)
     pacman.draw = function (self)
         if self.render == false then return end
 
-        if engine.timer.getTime() - self.loadedTime > self.startIdleTime and not self.stoped then
-            if (engine.timer.getTime() - self.lastFrameTime) >= self.nextFrameTime then
-                self.lastFrameTime = engine.timer.getTime()
+        if not self.stoped then
+            if (Utils:getTime() - self.lastFrameTime) >= self.nextFrameTime then
+                self.lastFrameTime = Utils:getTime()
                 self.frame = self.frame + 1
                 if self.frame > 3 then self.frame = 1 end
             end
@@ -168,8 +166,8 @@ Pacman.LoadPacman = function (grid, gameControl)
         end
 
         if self.dying == true then
-            if (engine.timer.getTime() - self.lastFrameTime) >= (self.nextFrameTime*3.5) then
-                self.lastFrameTime = engine.timer.getTime()
+            if (Utils:getTime() - self.lastFrameTime) >= self.nextFrameTime then
+                self.lastFrameTime = Utils:getTime()
                 self.frame = self.frame + 1
 
                 if self.frame > 13 then
@@ -183,13 +181,16 @@ Pacman.LoadPacman = function (grid, gameControl)
         end
 
         if self.frame < 12 then
+            if self.gameControl.frameCount < 2 then
+                self.renderSprite = "fill"
+            end
+
             local img = "pacman/"..self.renderSprite
             Utils:draw(img, self.position[1]-self.grid.tilePX+1, self.position[2]-self.grid.tilePX+1, self.grid.tilePX*2/Utils:getImgSize(img), {1,1,1})
         end
     end
 
-    pacman.loadedTime = engine.timer.getTime()
-    pacman.lastFrameTime = engine.timer.getTime()
+    pacman.lastFrameTime = Utils:getTime()
     return pacman
 end
 

@@ -1,5 +1,9 @@
 Utils = {
+    maxVolume = .5,
+    sleeptTime = 0,
+    programmedActions = {},
     images = {},
+    audio = {},
     input = {
         up=false,
         down=false,
@@ -7,6 +11,65 @@ Utils = {
         right=false
     }
 }
+
+Utils.sleep = function (self, time)
+    self.sleeptTime = self.sleeptTime + time
+    engine.timer.sleep(time)
+end
+
+Utils.getTime = function (self)
+    return engine.timer.getTime() - self.sleeptTime
+end
+
+Utils.doAfter = function (self, time, action)
+    table.insert(self.programmedActions, {time + self:getTime(), action})
+end
+
+Utils.updateActions = function (self)
+    for i, action in ipairs(self.programmedActions) do
+        if action[1] - self:getTime() < 0  then
+            action[2]()
+            table.remove(self.programmedActions, i)
+        end
+    end
+end
+
+Utils.triggAudio = function (self, audio, volume, pitch, inloop, play)
+    if self.audio[audio] == nil then
+        self.audio[audio] = engine.audio.newSource("sounds/"..audio..".mp3", "static")
+    end
+
+    if volume == nil then volume = 1 end
+    volume = volume*self.maxVolume
+    if pitch == nil then pitch = 1 end
+    if inloop == nil then inloop = false end
+
+    self.audio[audio]:setVolume(volume)
+    self.audio[audio]:setPitch(pitch)
+    self.audio[audio]:setLooping(inloop)
+
+    if play == true then
+        self.audio[audio]:play()
+    else
+        self.audio[audio]:stop()
+    end
+
+    return self.audio[audio]:getDuration()
+end
+
+Utils.isPlaying = function (self, audio)
+    if self.audio[audio] == nil then
+        return false
+    else
+        return self.audio[audio]:isPlaying()
+    end
+end
+
+Utils.stopAllSounds = function (self)
+    for key, _ in pairs(self.audio) do
+        self.audio[key]:stop()
+    end
+end
 
 Utils.getImgSize = function (self, img)
     if self.images[img] == nil then

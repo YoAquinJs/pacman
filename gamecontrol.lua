@@ -40,6 +40,7 @@ GameControl.LoadGameControl = function (tilePX)
         winTime=0,
         propSpawnTime=0,
         propLastSpawnTime=0,
+        sirenPitch = 1,
         levels = {
             modeShifts = {-- 0:SCATTER 1:CHASE
                 {untilLevel = 1, phases = {{0, 7}, {1, 20}, {0, 7}, {1, 20}, {0, 5}, {1, 20}, {0, 5}, {1, 1}}},
@@ -73,11 +74,10 @@ GameControl.LoadGameControl = function (tilePX)
             }
         },
         startLevel = function (self, level, died)
-            engine.timer.sleep(1)
-
             if level == 1 and died == false then
                 self.score = 0
                 self.lifes = self.startLifes
+                self.reachHighscore = false
                 self.grid:reloadConsumeables()
             else
                 if level == self.currentLevel + 1 then
@@ -86,7 +86,7 @@ GameControl.LoadGameControl = function (tilePX)
             end
 
             for i=1,#self.levels.modeShifts do
-                if level < self.levels.modeShifts[1].untilLevel+1 or self.levels.modeShifts[1].untilLevel==-1 then
+                if level < self.levels.modeShifts[i].untilLevel+1 or self.levels.modeShifts[i].untilLevel==-1 then
                     self.currentLevelInfo.shifts = self.levels.modeShifts[i].phases
                     goto selectedModeShift
                 end
@@ -97,7 +97,7 @@ GameControl.LoadGameControl = function (tilePX)
             else
                 self.currentLevelInfo.data = self.levels.levelData[#self.levels.levelData]
             end
-            self.currentLevelInfo.startTimeOffset = engine.timer.getTime()
+            self.currentLevelInfo.startTimeOffset = Utils:getTime()
             self.generalState = self.currentLevelInfo.shifts[1][1]
             self.currentLevelInfo.phase = 1
 
@@ -114,8 +114,18 @@ GameControl.LoadGameControl = function (tilePX)
             self.prop = 0
             self.grid.mazeColor = {1,1,1}
             self.winTime = 0
-            self.propSpawnTime = engine.timer.getTime()
             self.currentLevel = level
+            self.frameCount = 0
+            self.sirenPitch = 1
+            self.propSpawnTime = Utils:getTime()
+        end,
+        addScore = function (self, add)
+            self.score = self.score + add
+
+            if self.reachHighscore == false and self.score > self.highscores[1][2] then
+                self.reachHighscore = true
+                Utils:triggAudio("highscore", 1, 1, false, true)
+            end
         end,
         frightenedMode = function (self)
             for key, _ in pairs(self.ghosts) do
@@ -127,7 +137,15 @@ GameControl.LoadGameControl = function (tilePX)
             self.pacman.ghostsEatened = 1
             self.currentLevelInfo.startTimeOffset = self.currentLevelInfo.startTimeOffset + self.currentLevelInfo.data[13]
 
-            self.isFrightened = engine.timer.getTime()
+            self.isFrightened = Utils:getTime()
+            Utils:stopAllSounds()
+            Utils:doAfter(Utils:triggAudio("frigthtenedstart", 1, 1, false, true), function ()
+                Utils:triggAudio("frigthtened", 1, 1, true, true)
+            end)
+
+            Utils:doAfter(self.currentLevelInfo.data[13], function ()
+                Utils:triggAudio("frigthtened", 1, 1, true, false)
+            end)
         end,
         serializeScores = function (self)
             local formattedValues = ""
@@ -155,25 +173,30 @@ GameControl.LoadGameControl = function (tilePX)
             end
             self.pacman.stoped = true
             self.pacman.dying = true
-            engine.timer.sleep(1.5)
+
+            Utils:stopAllSounds()
+            Utils:sleep(1)
             self.pacman.renderSprite = "fill"
-            self.pacman.frame = -4
-            self.pacman.lastFrameTime = engine.timer.getTime()
+            self.pacman.frame = 0
+            self.pacman.lastFrameTime = Utils:getTime()
 
             for key, _ in pairs(self.ghosts) do
                 self.ghosts[key].render = false
             end
             self.prop = 0
+
+            self.pacman.nextFrameTime = Utils:triggAudio("die", 1, 1, false, true)/12
         end,
         pacmanDie = function (self)
+            Utils:sleep(1)
             if self.lifes == 0 then
-                self.deathTime = engine.timer.getTime()
+                self.deathTime = Utils:getTime()
                 self.currentLevel = 0
                 table.insert(self.highscores, {self:getNameTag(), self.score})
                 self:serializeScores()
-                return
+            else
+                self:startLevel(self.currentLevel, true)
             end
-            self:startLevel(self.currentLevel, true)
         end,
         eatGhost = function (self, key, ghostsEatened)
             self.ghosts[key].state = self.states.EATEN
@@ -182,13 +205,17 @@ GameControl.LoadGameControl = function (tilePX)
             self.score = self.score + obtainedScore
 
             local popupCoords = self.grid:getCenterCoordinates(self.ghosts[key].tile[1], self.ghosts[key].tile[2])
-            table.insert(self.popups, {tostring(obtainedScore), popupCoords[1], popupCoords[2] - (self.grid.tilePX/2), {0,1,1}, engine.timer.getTime(), .001, 2,
+            Utils:stopAllSounds()
+            table.insert(self.popups, {tostring(obtainedScore), popupCoords[1], popupCoords[2] - (self.grid.tilePX/2), {0,1,1}, Utils:getTime(), .001, 2,
             done=function ()
                 for key, _ in pairs(self.ghosts) do
                     self.ghosts[key].stoped = true
                 end
                 self.pacman.stoped = true
-                engine.timer.sleep(1)
+                Utils:sleep(Utils:triggAudio("eatghost", 1, 1, false, true))
+                Utils:stopAllSounds()
+                Utils:triggAudio("eaten", 1, 1, true, true)
+
                 for key, _ in pairs(self.ghosts) do
                     self.ghosts[key].stoped = false
                 end
@@ -198,7 +225,7 @@ GameControl.LoadGameControl = function (tilePX)
             end})
         end,
         winLevel = function (self)
-            engine.timer.sleep(1.5)
+            Utils:sleep(1.5)
 
             for key, _ in pairs(self.ghosts) do
                 self.ghosts[key].stoped = true
@@ -206,9 +233,9 @@ GameControl.LoadGameControl = function (tilePX)
             end
             self.pacman.stoped = true
 
-            engine.timer.sleep(.5)
+            Utils:sleep(.5)
             self.pacman.render = false
-            self.winTime = engine.timer.getTime()
+            self.winTime = Utils:getTime()
         end
     }
 
@@ -217,13 +244,13 @@ GameControl.LoadGameControl = function (tilePX)
     gameControl.update = function (self, dt)
         if self.currentLevel > 0 then
             if self.grid.consumables == 0 then
-                if engine.timer.getTime() - self.winTime > 4.5 then
-                    engine.timer.sleep(.5)
+                if Utils:getTime() - self.winTime > 4.5 then
+                    Utils:sleep(.5)
                     self:startLevel(self.currentLevel+1, false)
                     self.grid.mazeColor = {0,0,1}
                     return
                 end
-                if engine.timer.getTime() - self.winTime - math.floor(engine.timer.getTime() - self.winTime) > .5 then
+                if Utils:getTime() - self.winTime - math.floor(Utils:getTime() - self.winTime) > .5 then
                     self.grid.mazeColor = {1,1,1}
                 else
                     self.grid.mazeColor = {0.129,0.129,1}
@@ -233,28 +260,30 @@ GameControl.LoadGameControl = function (tilePX)
             end
 
             for i, popup in ipairs(self.popups) do
-                if (engine.timer.getTime() - popup[5]) >= popup[6] then
+                if (Utils:getTime() - popup[5]) >= popup[6] then
                     table.remove(self.popups, i)
 
                     if popup.done ~= nil then popup.done() end
                 end
             end
 
-            if (engine.timer.getTime() - self.propSpawnTime) % 15 > 14.9 and self.prop == 0 then
+            if (Utils:getTime() - self.propSpawnTime) % 15 > 14.9 and self.prop == 0 then
                 self.prop = self.currentLevelInfo.data[1]
-                self.propLastSpawnTime = engine.timer.getTime()
+                self.propLastSpawnTime = Utils:getTime()
             end
 
-            if self.prop ~= 0  and (engine.timer.getTime() - self.propLastSpawnTime) >= self.propMaxTime then
+            if self.prop ~= 0  and (Utils:getTime() - self.propLastSpawnTime) >= self.propMaxTime then
                 self.prop = 0
-                self.propSpawnTime = engine.timer.getTime()
+                self.propSpawnTime = Utils:getTime()
             end
 
             if self.prop ~= 0 and math.abs(self.pacman.position[1] - self.grid.propSpawnCoords[1]) < 5 and math.abs(self.pacman.position[2] - self.grid.propSpawnCoords[2]) < 5 then
                 self.score = self.score + self.props[self.prop][2]
-                table.insert(self.popups, {self.props[self.prop][2], self.grid.propSpawnCoords[1], self.grid.propSpawnCoords[2] - (self.grid.tilePX/2), {1,.706,1}, engine.timer.getTime(), 2, 2.2})
+                table.insert(self.popups, {self.props[self.prop][2], self.grid.propSpawnCoords[1], self.grid.propSpawnCoords[2] - (self.grid.tilePX/2), {1,.706,1}, Utils:getTime(), 2, 2.2})
                 self.prop = 0
-                self.propSpawnTime = engine.timer.getTime()
+                self.propSpawnTime = Utils:getTime()
+
+                Utils:triggAudio("eatfruit", 1, 1, false, true)
             end
 
             local pastIsInDots = self.pacman.isInDots
@@ -266,7 +295,7 @@ GameControl.LoadGameControl = function (tilePX)
             end
 
             if self.isFrightened ~= false then
-                local frightenedTimeLeft = self.currentLevelInfo.data[13] - (engine.timer.getTime() - self.isFrightened)
+                local frightenedTimeLeft = self.currentLevelInfo.data[13] - (Utils:getTime() - self.isFrightened)
                 if frightenedTimeLeft < 0 then--self.currentLevelInfo.frightenedModeTime then
                     for key, _ in pairs(self.ghosts) do
                         if self.ghosts[key].state ~= self.states.EATEN then
@@ -308,7 +337,7 @@ GameControl.LoadGameControl = function (tilePX)
                     for i, phase in ipairs(self.currentLevelInfo.shifts) do
                         acumulatedPhasesTime = acumulatedPhasesTime + phase[2]
 
-                        if engine.timer.getTime() - self.currentLevelInfo.startTimeOffset < acumulatedPhasesTime then
+                        if Utils:getTime() - self.currentLevelInfo.startTimeOffset < acumulatedPhasesTime then
                             if self.generalState ~= phase[1] then
                                 for key, _ in pairs(self.ghosts) do
                                     if self.ghosts[key].state ~= self.states.EATEN then
@@ -331,10 +360,12 @@ GameControl.LoadGameControl = function (tilePX)
                 end
             end
 
+            local anyEaten = false
             for key, _ in pairs(self.ghosts) do
                 if self.ghosts[key].state == self.states.FRIGHTENED then
                     self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data[12]
                 elseif self.ghosts[key].state == self.states.EATEN then
+                    anyEaten = true
                     self.ghosts[key].velocity = self.eatenVelocity
                 elseif self.grid:getTileContent(self.ghosts[key].tile[1], self.ghosts[key].tile[2]).tunnelHallway == true then
                     self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data[5]
@@ -345,7 +376,9 @@ GameControl.LoadGameControl = function (tilePX)
 
             if self.grid.consumables <= self.currentLevelInfo.data[6] and self.ghosts.blinky.state == self.states.CHASE then
                 self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data[7]
+                self.sirenPitch = 1.2
                 if self.grid.consumables <= self.currentLevelInfo.data[8] then
+                    self.sirenPitch = 1.4
                     self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data[9]
                 end
             end
@@ -354,35 +387,71 @@ GameControl.LoadGameControl = function (tilePX)
                 self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data[5]
             end
 
+            if self.pacman.dying == false and self.frameCount > 2 then
+                if Utils:isPlaying("eatdot") == true then
+                    if self.pacman.isInDots == false then
+                        Utils:triggAudio("eatdot", .65, 1, false, true)
+                    end
+                else
+                    Utils:triggAudio("eatdot", .65, 1, true, self.pacman.isInDots)
+                end
+
+                if anyEaten == false then
+                    if self.isFrightened ~= false then
+                        if Utils:isPlaying("frigthtened") == false then
+                            Utils:triggAudio("frigthtened", 1, 1, true, true)
+                        end
+                    else
+                        if Utils:isPlaying("siren") == false then
+                            Utils:triggAudio("siren", 1, self.sirenPitch, true, true)
+                        end
+                    end
+                elseif Utils:isPlaying("eaten") == false then
+                    Utils:triggAudio("eaten", 1, 1, true, true)
+                end
+            end
+
             self.pacman:update(dt)
             self.ghosts.blinky:update(dt)
             self.ghosts.clyde:update(dt)
             self.ghosts.inky:update(dt)
             self.ghosts.pinky:update(dt)
-    elseif self.currentLevel == 0 then
+
+            --AUDIO
+
+            --siren
+                --eat dot
+            --frightened
+            --eaten
+
+            if self.frameCount == 1 then
+                Utils:sleep(Utils:triggAudio("start", .7, 1, false, self.currentLevel == 1 and self.lifes == self.startLifes))
+            end
+            self.frameCount = self.frameCount + 1
+        elseif self.currentLevel == 0 then
             if Utils.input.right == true or Utils.input.left == true or Utils.input.up == true or Utils.input.down == true or Utils.input.start == true then
                 self.currentLevel = -1
             end
         else
-            if engine.timer.getTime() - self.nameTag[3] > 0.15 then
+            if Utils:getTime() - self.nameTag[3] > 0.15 then
                 if Utils.input.left then
                     self.nameTag[1] = self.nameTag[1] - 1
                     if self.nameTag[1] == 0 then self.nameTag[1] = #self.nameTag[2] end
-                    self.nameTag[3] = engine.timer.getTime()
+                    self.nameTag[3] = Utils:getTime()
                 elseif Utils.input.right then
                     self.nameTag[1] = self.nameTag[1] + 1
                     if self.nameTag[1] == #self.nameTag[2]+1 then self.nameTag[1] = 1 end
-                    self.nameTag[3] = engine.timer.getTime()
+                    self.nameTag[3] = Utils:getTime()
                 elseif Utils.input.up then
                     self.nameTag[2][self.nameTag[1]] = self.nameTag[2][self.nameTag[1]] + 1
                     if self.nameTag[2][self.nameTag[1]] == 58 then self.nameTag[2][self.nameTag[1]] = 65 end
                     if self.nameTag[2][self.nameTag[1]] == 91 then self.nameTag[2][self.nameTag[1]] = 48 end
-                    self.nameTag[3] = engine.timer.getTime()
+                    self.nameTag[3] = Utils:getTime()
                 elseif Utils.input.down then
                     self.nameTag[2][self.nameTag[1]] = self.nameTag[2][self.nameTag[1]] - 1
                     if self.nameTag[2][self.nameTag[1]] == 47 then self.nameTag[2][self.nameTag[1]] = 90 end
                     if self.nameTag[2][self.nameTag[1]] == 64 then self.nameTag[2][self.nameTag[1]] = 57 end
-                    self.nameTag[3] = engine.timer.getTime()
+                    self.nameTag[3] = Utils:getTime()
                 end
             end
 
@@ -441,7 +510,7 @@ GameControl.LoadGameControl = function (tilePX)
                 Utils:drawText(":"..tostring(popup[1]), popup[2], popup[3], self.grid.tilePX*(popup[7]/16), popup[4], true)
             end
         elseif self.currentLevel == 0 then
-            local timePastDeath = (engine.timer.getTime() - self.deathTime)
+            local timePastDeath = (Utils:getTime() - self.deathTime)
             if timePastDeath <= 1 then
                 Utils:drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], self.grid.tilePX*(3/16), {1,0,0}, true)
                 self.grid:draw()
@@ -461,7 +530,7 @@ GameControl.LoadGameControl = function (tilePX)
                 if i == self.nameTag[1] then
                     scale = self.grid.tilePX*(9/16)
                     adjust = 4*(self.grid.tilePX/16)
-                    if engine.timer.getTime() - math.floor(engine.timer.getTime()) < 0.5 then
+                    if Utils:getTime() - math.floor(Utils:getTime()) < 0.5 then
                         color = {.2,.2,1}
                     end
                 end
