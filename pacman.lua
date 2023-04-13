@@ -141,12 +141,12 @@ Pacman.LoadPacman = function (grid, gameControl)
     end
 
 
-    pacman.draw = function (self)
+    pacman.draw = function (self, time)
         if self.render == false then return end
 
         if not self.stoped then
-            if (Utils:getTime() - self.lastFrameTime) >= self.nextFrameTime then
-                self.lastFrameTime = Utils:getTime()
+            if (time - self.lastFrameTime) >= self.nextFrameTime then
+                self.lastFrameTime = time
                 self.frame = self.frame + 1
                 if self.frame > 3 then self.frame = 1 end
             end
@@ -166,8 +166,8 @@ Pacman.LoadPacman = function (grid, gameControl)
         end
 
         if self.dying == true then
-            if (Utils:getTime() - self.lastFrameTime) >= self.nextFrameTime then
-                self.lastFrameTime = Utils:getTime()
+            if (time - self.lastFrameTime) >= self.nextFrameTime then
+                self.lastFrameTime = time
                 self.frame = self.frame + 1
 
                 if self.frame > 13 then

@@ -28,6 +28,7 @@ GameControl.LoadGameControl = function (tilePX)
         scoreCounterCoords=nil,
         gameOverLabel=nil,
 
+        nameTagColor = {.2,.2,.6},
         nameTag={1, {65, 65, 65, 65, 65}, 0},
         popups={},
         lifes=2,
@@ -42,36 +43,10 @@ GameControl.LoadGameControl = function (tilePX)
         propLastSpawnTime=0,
         sirenPitch = 1,
         levels = {
-            modeShifts = {-- 0:SCATTER 1:CHASE
-                {untilLevel = 1, phases = {{0, 7}, {1, 20}, {0, 7}, {1, 20}, {0, 5}, {1, 20}, {0, 5}, {1, 1}}},
-                {untilLevel = 4, phases = {{0, 7}, {1, 20}, {0, 7}, {1, 20}, {0, 5}, {1, 1}}},
-                {untilLevel = -1,phases = {{0, 5}, {1, 20}, {0, 5}, {1, 20}, {0, 5}, {1, 1}}},
-            },
+            modeShifts = {},-- 0:SCATTER 1:CHASE See leveldata.csv
             levelData = {
---1           2           3              4          5                6          7           8          9           10                 11                  12               13
---BonusSymbol/PacmanSpeed/PacmanDotSpeed/GhostSpeed/GhostTunnelSpeed/Elroy1Dots/Elroy1Speed/Elroy2Dots/Elroy2Speed/PacmanFrightSpeed/PacmanFrightDotSpeed/GhostFrightSpeed/FrightTime
-{ 1,          0.80,       0.71,          0.75,      0.40,             20,       0.80,       10,        0.85,       0.90,             0.79,                0.50,            6}, --  1
-{ 2,          0.90,       0.79,          0.85,      0.45,             30,       0.90,       15,        0.95,       0.95,             0.83,                0.55,            5}, --  2
-{ 3,          0.90,       0.79,          0.85,      0.45,             40,       0.90,       20,        0.95,       0.95,             0.83,                0.55,            4}, --  3
-{ 3,          0.90,       0.79,          0.85,      0.45,             40,       0.90,       20,        0.95,       0.95,             0.83,                0.55,            3}, --  4
-{ 4,          1.00,       0.87,          0.95,      0.50,             40,       1.00,       20,        1.05,       1.00,             0.87,                0.60,            2}, --  5
-{ 4,          1.00,       0.87,          0.95,      0.50,             50,       1.00,       25,        1.05,       1.00,             0.87,                0.60,            5}, --  6
-{ 5,          1.00,       0.87,          0.95,      0.50,             50,       1.00,       25,        1.05,       1.00,             0.87,                0.60,            2}, --  7
-{ 5,          1.00,       0.87,          0.95,      0.50,             50,       1.00,       25,        1.05,       1.00,             0.87,                0.60,            2}, --  8
-{ 6,          1.00,       0.87,          0.95,      0.50,             60,       1.00,       30,        1.05,       1.00,             0.87,                0.60,            1}, --  9
-{ 6,          1.00,       0.87,          0.95,      0.50,             60,       1.00,       30,        1.05,       1.00,             0.87,                0.60,            5}, -- 10
-{ 7,          1.00,       0.87,          0.95,      0.50,             60,       1.00,       30,        1.05,       1.00,             0.87,                0.60,            2}, -- 11
-{ 7,          1.00,       0.87,          0.95,      0.50,             80,       1.00,       40,        1.05,       1.00,             0.87,                0.60,            1}, -- 12
-{ 8,          1.00,       0.87,          0.95,      0.50,             80,       1.00,       40,        1.05,       1.00,             0.87,                0.60,            1}, -- 13
-{ 8,          1.00,       0.87,          0.95,      0.50,             80,       1.00,       40,        1.05,       1.00,             0.87,                0.60,            3}, -- 14
-{ 8,          1.00,       0.87,          0.95,      0.50,            100,       1.00,       50,        1.05,       1.00,             0.87,                0.60,            1}, -- 15
-{ 8,          1.00,       0.87,          0.95,      0.50,            100,       1.00,       50,        1.05,       1.00,             0.87,                0.60,            1}, -- 16
-{ 8,          1.00,       0.87,          0.95,      0.50,            100,       1.00,       50,        1.05,        nil,              nil,                 nil,            0}, -- 17
-{ 8,          1.00,       0.87,          0.95,      0.50,            100,       1.00,       50,        1.05,       1.00,             0.87,                0.60,            1}, -- 18
-{ 8,          1.00,       0.87,          0.95,      0.50,            120,       1.00,       60,        1.05,        nil,              nil,                 nil,            0}, -- 19
-{ 8,          1.00,       0.87,          0.95,      0.50,            120,       1.00,       60,        1.05,        nil,              nil,                 nil,            0}, -- 20
-{ 8,          0.90,       0.79,          0.95,      0.50,            120,       1.00,       60,        1.05,        nil,              nil,                 nil,            0}, -- 21
-            }
+"BonusSymbol","PacmanSpeed","PacmanDotSpeed","GhostSpeed","GhostTunnelSpeed","Elroy1Dots","Elroy1Speed","Elroy2Dots","Elroy2Speed","PacmanFrightSpeed","PacmanFrightDotSpeed","GhostFrightSpeed","FrightTime"
+                        }
         },
         startLevel = function (self, level, died)
             if level == 1 and died == false then
@@ -135,7 +110,7 @@ GameControl.LoadGameControl = function (tilePX)
             end
 
             self.pacman.ghostsEatened = 1
-            self.currentLevelInfo.startTimeOffset = self.currentLevelInfo.startTimeOffset + self.currentLevelInfo.data[13]
+            self.currentLevelInfo.startTimeOffset = self.currentLevelInfo.startTimeOffset + self.currentLevelInfo.data.FrightTime
 
             self.isFrightened = Utils:getTime()
             Utils:stopAllSounds()
@@ -143,7 +118,7 @@ GameControl.LoadGameControl = function (tilePX)
                 Utils:triggAudio("frigthtened", 1, 1, true, true)
             end)
 
-            Utils:doAfter(self.currentLevelInfo.data[13], function ()
+            Utils:doAfter(self.currentLevelInfo.data.FrightTime, function ()
                 Utils:triggAudio("frigthtened", 1, 1, true, false)
             end)
         end,
@@ -241,16 +216,16 @@ GameControl.LoadGameControl = function (tilePX)
 
     gameControl.grid =  Grid.LoadGrid(gameControl, tilePX)
 
-    gameControl.update = function (self, dt)
+    gameControl.update = function (self, dt, time)
         if self.currentLevel > 0 then
             if self.grid.consumables == 0 then
-                if Utils:getTime() - self.winTime > 4.5 then
+                if time - self.winTime > 4.5 then
                     Utils:sleep(.5)
                     self:startLevel(self.currentLevel+1, false)
                     self.grid.mazeColor = {0,0,1}
                     return
                 end
-                if Utils:getTime() - self.winTime - math.floor(Utils:getTime() - self.winTime) > .5 then
+                if time - self.winTime - math.floor(time - self.winTime) > .5 then
                     self.grid.mazeColor = {1,1,1}
                 else
                     self.grid.mazeColor = {0.129,0.129,1}
@@ -260,28 +235,28 @@ GameControl.LoadGameControl = function (tilePX)
             end
 
             for i, popup in ipairs(self.popups) do
-                if (Utils:getTime() - popup[5]) >= popup[6] then
+                if (time - popup[5]) >= popup[6] then
                     table.remove(self.popups, i)
 
                     if popup.done ~= nil then popup.done() end
                 end
             end
 
-            if (Utils:getTime() - self.propSpawnTime) % 15 > 14.9 and self.prop == 0 then
-                self.prop = self.currentLevelInfo.data[1]
-                self.propLastSpawnTime = Utils:getTime()
+            if (time - self.propSpawnTime) % 15 > 14.9 and self.prop == 0 then
+                self.prop = self.currentLevelInfo.data.BonusSymbol
+                self.propLastSpawnTime = time
             end
 
-            if self.prop ~= 0  and (Utils:getTime() - self.propLastSpawnTime) >= self.propMaxTime then
+            if self.prop ~= 0  and (time - self.propLastSpawnTime) >= self.propMaxTime then
                 self.prop = 0
-                self.propSpawnTime = Utils:getTime()
+                self.propSpawnTime = time
             end
 
             if self.prop ~= 0 and math.abs(self.pacman.position[1] - self.grid.propSpawnCoords[1]) < 5 and math.abs(self.pacman.position[2] - self.grid.propSpawnCoords[2]) < 5 then
                 self.score = self.score + self.props[self.prop][2]
-                table.insert(self.popups, {self.props[self.prop][2], self.grid.propSpawnCoords[1], self.grid.propSpawnCoords[2] - (self.grid.tilePX/2), {1,.706,1}, Utils:getTime(), 2, 2.2})
+                table.insert(self.popups, {self.props[self.prop][2], self.grid.propSpawnCoords[1], self.grid.propSpawnCoords[2] - (self.grid.tilePX/2), {1,.706,1}, time, 2, 2.2})
                 self.prop = 0
-                self.propSpawnTime = Utils:getTime()
+                self.propSpawnTime = time
 
                 Utils:triggAudio("eatfruit", 1, 1, false, true)
             end
@@ -295,7 +270,7 @@ GameControl.LoadGameControl = function (tilePX)
             end
 
             if self.isFrightened ~= false then
-                local frightenedTimeLeft = self.currentLevelInfo.data[13] - (Utils:getTime() - self.isFrightened)
+                local frightenedTimeLeft = self.currentLevelInfo.data.FrightTime - (time - self.isFrightened)
                 if frightenedTimeLeft < 0 then--self.currentLevelInfo.frightenedModeTime then
                     for key, _ in pairs(self.ghosts) do
                         if self.ghosts[key].state ~= self.states.EATEN then
@@ -314,7 +289,7 @@ GameControl.LoadGameControl = function (tilePX)
                 elseif frightenedTimeLeft <= 2 then--self.currentLevelInfo.frightenedModeTime-2 then
                     local frightenedColor = "B"--self.currentLevelInfo.frightenedModeTime-2))/0.3 + 0.5), "B"
                     local colorTimeSpan = 1/5
-                    if self.currentLevelInfo.data[13] == 1 then colorTimeSpan = 1/6 end
+                    if self.currentLevelInfo.data.FrightTime == 1 then colorTimeSpan = 1/6 end
                     if math.floor(frightenedTimeLeft/(colorTimeSpan) + 0.5) % 2 == 1 then
                         frightenedColor = "W"
                     end
@@ -324,20 +299,22 @@ GameControl.LoadGameControl = function (tilePX)
                         end
                     end
                 end
-                local velocityData = 10
-                if self.pacman.isInDots == true then velocityData = 11 end
-                self.pacman.velocity = self.maxVelocity*self.currentLevelInfo.data[velocityData]
+                self.pacman.velocity = self.maxVelocity*self.currentLevelInfo.data.PacmanFrightSpeed
+                if self.pacman.isInDots == true then
+                    self.pacman.velocity = self.maxVelocity*self.currentLevelInfo.data.PacmanFrightDotSpeed
+                end
             else
-                local velocityData = 2
-                if self.pacman.isInDots == true then velocityData = 3 end
-                self.pacman.velocity = self.maxVelocity*self.currentLevelInfo.data[velocityData]
+                self.pacman.velocity = self.maxVelocity*self.currentLevelInfo.data.PacmanSpeed
+                if self.pacman.isInDots == true then
+                    self.pacman.velocity = self.maxVelocity*self.currentLevelInfo.data.PacmanDotSpeed
+                end
 
                 if self.currentLevelInfo.phase ~= -1 then
                     local acumulatedPhasesTime = 0
                     for i, phase in ipairs(self.currentLevelInfo.shifts) do
                         acumulatedPhasesTime = acumulatedPhasesTime + phase[2]
 
-                        if Utils:getTime() - self.currentLevelInfo.startTimeOffset < acumulatedPhasesTime then
+                        if time - self.currentLevelInfo.startTimeOffset < acumulatedPhasesTime then
                             if self.generalState ~= phase[1] then
                                 for key, _ in pairs(self.ghosts) do
                                     if self.ghosts[key].state ~= self.states.EATEN then
@@ -363,28 +340,28 @@ GameControl.LoadGameControl = function (tilePX)
             local anyEaten = false
             for key, _ in pairs(self.ghosts) do
                 if self.ghosts[key].state == self.states.FRIGHTENED then
-                    self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data[12]
+                    self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data.GhostFrightSpeed
                 elseif self.ghosts[key].state == self.states.EATEN then
                     anyEaten = true
                     self.ghosts[key].velocity = self.eatenVelocity
                 elseif self.grid:getTileContent(self.ghosts[key].tile[1], self.ghosts[key].tile[2]).tunnelHallway == true then
-                    self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data[5]
+                    self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data.GhostTunnelSpeed
                 else
-                    self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data[4]
+                    self.ghosts[key].velocity = self.maxVelocity*self.currentLevelInfo.data.GhostSpeed
                 end
             end
 
-            if self.grid.consumables <= self.currentLevelInfo.data[6] and self.ghosts.blinky.state == self.states.CHASE then
-                self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data[7]
+            if self.grid.consumables <= self.currentLevelInfo.data.Elroy1Dots and self.ghosts.blinky.state == self.states.CHASE then
+                self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data.Elroy1Speed
                 self.sirenPitch = 1.2
-                if self.grid.consumables <= self.currentLevelInfo.data[8] then
+                if self.grid.consumables <= self.currentLevelInfo.data.Elroy2Dots then
                     self.sirenPitch = 1.4
-                    self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data[9]
+                    self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data.Elroy2Speed
                 end
             end
 
             if self.grid:getTileContent(self.ghosts.blinky.tile[1], self.ghosts.blinky.tile[2]).tunnelHallway == true then
-                self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data[5]
+                self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data.GhostTunnelSpeed
             end
 
             if self.pacman.dying == false and self.frameCount > 2 then
@@ -433,25 +410,35 @@ GameControl.LoadGameControl = function (tilePX)
                 self.currentLevel = -1
             end
         else
-            if Utils:getTime() - self.nameTag[3] > 0.15 then
+            if time - self.nameTag[3] > 0.15 then
                 if Utils.input.left then
                     self.nameTag[1] = self.nameTag[1] - 1
                     if self.nameTag[1] == 0 then self.nameTag[1] = #self.nameTag[2] end
-                    self.nameTag[3] = Utils:getTime()
+                    self.nameTag[3] = time
                 elseif Utils.input.right then
                     self.nameTag[1] = self.nameTag[1] + 1
                     if self.nameTag[1] == #self.nameTag[2]+1 then self.nameTag[1] = 1 end
-                    self.nameTag[3] = Utils:getTime()
+                    self.nameTag[3] = time
                 elseif Utils.input.up then
                     self.nameTag[2][self.nameTag[1]] = self.nameTag[2][self.nameTag[1]] + 1
                     if self.nameTag[2][self.nameTag[1]] == 58 then self.nameTag[2][self.nameTag[1]] = 65 end
                     if self.nameTag[2][self.nameTag[1]] == 91 then self.nameTag[2][self.nameTag[1]] = 48 end
-                    self.nameTag[3] = Utils:getTime()
+
+                    self.nameTagColor = {.2,.2,.6}
+                    for i=1, #self.highscores do
+                        if self.highscores[i][1] == self:getNameTag() then self.nameTagColor = {.8,.6,.01} end
+                    end
+                    self.nameTag[3] = time
                 elseif Utils.input.down then
                     self.nameTag[2][self.nameTag[1]] = self.nameTag[2][self.nameTag[1]] - 1
                     if self.nameTag[2][self.nameTag[1]] == 47 then self.nameTag[2][self.nameTag[1]] = 90 end
                     if self.nameTag[2][self.nameTag[1]] == 64 then self.nameTag[2][self.nameTag[1]] = 57 end
-                    self.nameTag[3] = Utils:getTime()
+
+                    self.nameTagColor = {.2,.2,.6}
+                    for i=1, #self.highscores do
+                        if self.highscores[i][1] == self:getNameTag() then self.nameTagColor = {.8,.6,.01} end
+                    end
+                    self.nameTag[3] = time
                 end
             end
 
@@ -464,18 +451,17 @@ GameControl.LoadGameControl = function (tilePX)
                 end
                 self:startLevel(1, false)
             end
-            --check input for start game and set name
         end
     end
 
-    gameControl.draw = function (self)
+    gameControl.draw = function (self, time)
         if self.currentLevel > 0 then
             Utils:drawText("HIGH SCORE", engine.graphics.getWidth()/2, self.highScoreLabelCoords[2], self.grid.tilePX*(2.6/16), {1,1,1}, true)
             Utils:drawText(tostring(self.highscores[1][2]), engine.graphics.getWidth()/2, self.highScoreValueCoords[2], self.grid.tilePX*(2.6/16), {1,1,1}, true)
             Utils:drawText(tostring(self.score), self.scoreCounterCoords[1]-(self.grid.tilePX*(#tostring(self.score))), self.scoreCounterCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
             Utils:drawText(self:getNameTag(), self.nameTagCoords[1], self.nameTagCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
             for i = 0, self.lifes-2 do
-                local img, scale = "/pacman/r2", self.grid.tilePX*(1.8/16)
+                local img, scale = "pacman/r2", self.grid.tilePX*(1.8/16)
                 Utils:draw(img, self.lifesCounterCoords[1]+(i*self.grid.tilePX*2)-(self.grid.tilePX), self.lifesCounterCoords[2]-(self.grid.tilePX), scale, {1,1,1})
             end
 
@@ -500,17 +486,17 @@ GameControl.LoadGameControl = function (tilePX)
             end
 
             self.grid:draw()
-            self.pacman:draw()
-            self.ghosts.blinky:draw()
-            self.ghosts.clyde:draw()
-            self.ghosts.inky:draw()
-            self.ghosts.pinky:draw()
+            self.pacman:draw(time)
+            self.ghosts.blinky:draw(time)
+            self.ghosts.clyde:draw(time)
+            self.ghosts.inky:draw(time)
+            self.ghosts.pinky:draw(time)
 
             for _, popup in ipairs(self.popups) do
                 Utils:drawText(":"..tostring(popup[1]), popup[2], popup[3], self.grid.tilePX*(popup[7]/16), popup[4], true)
             end
         elseif self.currentLevel == 0 then
-            local timePastDeath = (Utils:getTime() - self.deathTime)
+            local timePastDeath = (time - self.deathTime)
             if timePastDeath <= 1 then
                 Utils:drawText("GAME OVER", engine.graphics.getWidth()/2, self.gameOverLabel[2], self.grid.tilePX*(3/16), {1,0,0}, true)
                 self.grid:draw()
@@ -526,12 +512,13 @@ GameControl.LoadGameControl = function (tilePX)
 
             Utils:drawText("PLAYER", engine.graphics.getWidth()/2, 160*(self.grid.tilePX/16), self.grid.tilePX*(6/16), {1,1,0}, true)
             for i, char in ipairs(self.nameTag[2]) do
-                local color, scale, adjust = {.2,.2,.6}, self.grid.tilePX*(8/16), 0
+                local color, scale, adjust = self.nameTagColor, self.grid.tilePX*(8/16), 0
                 if i == self.nameTag[1] then
                     scale = self.grid.tilePX*(9/16)
                     adjust = 4*(self.grid.tilePX/16)
-                    if Utils:getTime() - math.floor(Utils:getTime()) < 0.5 then
-                        color = {.2,.2,1}
+                    if time - math.floor(time) < 0.5 then
+                        if color[2] == .2 then color[3] = 1 end
+                        if color[2] == .6 then color[1] = 1 end
                     end
                 end
                 Utils:drawText(string.char(char), engine.graphics.getWidth()/2 + (9*self.grid.tilePX*(6/16)*(i-3)), (220*(self.grid.tilePX/16)) - adjust, scale, {1,1,0}, true, color)
@@ -560,9 +547,54 @@ GameControl.LoadGameControl = function (tilePX)
     for line in engine.filesystem.lines(gameControl.savingsFile) do
         local comaIndex = line:find(",")
         gameControl.highscores[i] = {line:sub(1, comaIndex-1), tonumber(line:sub(comaIndex+1, #line))}
+        if gameControl.highscores[i][1] == "AAAAA" then
+            gameControl.nameTagColor = {.8,.6,.01}
+        end
         i = i + 1
     end
     gameControl:serializeScores()
+
+    -- File for level data
+    local levelDataFile = assert(io.open("assets/leveldata.csv", "r"))
+
+    local i, j, levelData, levelDataKeys = 1, 1, true, gameControl.levels.levelData
+    gameControl.levels.levelData = {}
+    for levelDataString in levelDataFile:lines() do
+        j = 1
+
+        if #levelDataString < 2 then
+            levelData = false
+            i = 1
+        else
+            if levelData == true then
+    ---@diagnostic disable-next-line: assign-type-mismatch
+                gameControl.levels.levelData[i] = {}
+            else
+                gameControl.levels.modeShifts[i] = {untilLevel=nil, phases={}}
+            end
+
+            for data in string.gmatch(levelDataString, "[^,]+") do
+                if levelData == true then
+                    if data == "null" then
+                        gameControl.levels.levelData[i][levelDataKeys[j]] = nil
+                    else
+                        gameControl.levels.levelData[i][levelDataKeys[j]] = assert(tonumber(data))
+                    end
+                else
+                    if j == 1 then
+                        gameControl.levels.modeShifts[i].untilLevel = assert(tonumber(data))
+                    else
+                        gameControl.levels.modeShifts[i].phases[j-1] = {j%2, tonumber(data)}
+                    end
+                end
+                j = j + 1
+            end
+            i = i + 1
+        end
+    end
+
+    levelDataFile:close()
+
 
     return gameControl
 end

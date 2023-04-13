@@ -78,10 +78,8 @@ Grid.LoadGrid = function (gameControl, tilePX)
         end,
         reloadConsumeables = function (self)
             self.consumables = 0
-            local mapFile = io.open("mapdata", "r")
-            assert(type(mapFile) ~= nil, "Couldnt open map file")
+            local mapFile = assert(io.open("map/mapdata", "r"))
 
-            ---@diagnostic disable-next-line: need-check-nil
             local mapStr = mapFile:read("a")
             local x, y = 1, 1
             for i = 1, #mapStr do
@@ -103,13 +101,13 @@ Grid.LoadGrid = function (gameControl, tilePX)
                     x = x + 1
                 end
             end
+
+            io.close(mapFile)
         end
     }
 
-    local mapFile = io.open("mapdata", "r")
-    assert(type(mapFile) ~= nil, "Couldnt open map file")
+    local mapFile = assert(io.open("map/mapdata", "r"))
 
-    ---@diagnostic disable-next-line: need-check-nil
     local mapStr = mapFile:read("a")
     local x, y = 1, 1
     for i = 1, #mapStr do

@@ -212,12 +212,12 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, startT
     end
 
 
-    ghost.draw = function (self)
+    ghost.draw = function (self, time)
         if not self.render == true then return end
 
         if not self.stoped then
-            if (Utils:getTime() - self.lastFrameTime) >= self.nextFrameTime then
-                self.lastFrameTime = Utils:getTime()
+            if (time - self.lastFrameTime) >= self.nextFrameTime then
+                self.lastFrameTime = time
                 self.frame = self.frame + 1
                 if self.frame > 2 then self.frame = 1 end
             end

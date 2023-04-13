@@ -1,6 +1,6 @@
 $sourceDir = Get-Location
 $destinationZip = Join-Path $sourceDir "pacman.love"
-$excludeExtensions = @(".love", ".gitignore", ".ps1", ".md", ".sh", ".zip")
+$excludeExtensions = @(".love", ".gitignore", ".ps1", ".md", ".sh", ".zip", ".py")
 $excludeFolders = @(".vscode", ".git")
 
 if (Test-Path $destinationZip) {

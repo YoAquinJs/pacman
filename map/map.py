@@ -2,7 +2,6 @@ import os
 from sys import argv
 from PIL import Image
 
-my_path = os.path.dirname(__file__)
 image = Image.open(f"map.png")
 
 width, height = image.size
@@ -37,7 +36,7 @@ tileTypes = {
     "-" : (000, 150, 000)  #TUNNELHALLWAY
 }
 
-with open(os.path.dirname(__file__) + '/../' + argv[1], 'w') as mapFile:
+with open(os.path.dirname(__file__) + '/' + argv[1], 'w') as mapFile:
     for y in range(height):
         for x in range(width):
             pixel = image.getpixel((x, y))
@@ -47,9 +46,8 @@ with open(os.path.dirname(__file__) + '/../' + argv[1], 'w') as mapFile:
                     mapFile.write(str(key))
                     break
 
-        mapFile.write("\n")
-
-    mapFile.truncate((width+2)*height - 2)
+        if y < height-1:
+            mapFile.write("\n")
 
 """
 python map.py mapdata

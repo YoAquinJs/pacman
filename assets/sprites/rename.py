@@ -16,7 +16,7 @@ spriteType = {
 } 
 
 if len(argv) > 1:
-    directory =  os.path.dirname(__file__) + "\\" + argv[1]
+    directory =  os.path.dirname(__file__) + "\\spritesheets\\" + argv[1]
 
     for filename in os.listdir(directory):
         if filename.endswith(fileExtension):
@@ -24,7 +24,7 @@ if len(argv) > 1:
             os.rename(os.path.join(directory, filename), os.path.join(directory, spriteType[argv[1]][fileNumber] + fileExtension))
 else:
     for key in spriteType.keys():
-        dir = os.path.dirname(__file__) + "\\" + key
+        dir = os.path.dirname(__file__) + "\\spritesheets\\" + key
         if not os.path.exists(dir):
             os.makedirs(dir)
 
