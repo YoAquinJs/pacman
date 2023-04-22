@@ -182,12 +182,6 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsI
                 if self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true then
                     self:getDirection()
                 end
-                local centerCoords = self.grid:getCenterCoordinates(self.tile[1], self.tile[2])
-                if self.direction[1] ~= 0 and self.position[2] ~= centerCoords[2] then
-                    self.position[2] = centerCoords[2]
-                elseif self.direction[2] ~= 0 and self.position[1] ~= centerCoords[1] then
-                    self.position[1] = centerCoords[1]
-                end
                 self.nextTile[self.directionAxis] = self.nextTile[self.directionAxis] + self.direction[self.directionAxis]
                 if self.tunnel ~= nil then
                     if self.pacman.tunnel ~= nil then
@@ -205,6 +199,15 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsI
         if dt < .2 then
             self.position[1] = self.position[1] + (self.direction[1] * self.velocity * self.grid.tilePX * dt)
             self.position[2] = self.position[2] + (self.direction[2] * self.velocity * self.grid.tilePX * dt)
+
+            if self.inSpawn == false then
+                local centerCoords = self.grid:getCenterCoordinates(self.tile[1], self.tile[2])
+                if self.direction[1] ~= 0 and self.position[2] ~= centerCoords[2] then
+                    self.position[2] = centerCoords[2]
+                elseif self.direction[2] ~= 0 and self.position[1] ~= centerCoords[1] then
+                    self.position[1] = centerCoords[1]
+                end
+            end
         end
     end
 

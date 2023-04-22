@@ -35,6 +35,5 @@ end
 --TODO
 -- Needed optimization for raspberry
 --DOCS
--- license
 -- Docs
 --BUGS

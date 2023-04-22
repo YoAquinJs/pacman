@@ -130,11 +130,6 @@ Pacman.LoadPacman = function (grid, gameControl)
         end
 
         local centerCoords, isIntersection = self.grid:getCenterCoordinates(self.tile[1], self.tile[2]), self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true
-        if self.direction[1] ~= 0 and self.position[2] ~= centerCoords[2] then
-            self.position[2] = centerCoords[2]
-        elseif self.direction[2] ~= 0 and self.position[1] ~= centerCoords[1] then
-            self.position[1] = centerCoords[1]
-        end
 
         local cornerBoost = 1
         if self.turnDistToCenter ~= -1 then
@@ -148,6 +143,11 @@ Pacman.LoadPacman = function (grid, gameControl)
         if dt < .2 then
             self.position[1] = self.position[1] + (self.direction[1] * (self.velocity*cornerBoost) * self.grid.tilePX * dt)
             self.position[2] = self.position[2] + (self.direction[2] * (self.velocity*cornerBoost) * self.grid.tilePX * dt)
+            if self.direction[1] ~= 0 and self.position[2] ~= centerCoords[2] then
+                self.position[2] = centerCoords[2]
+            elseif self.direction[2] ~= 0 and self.position[1] ~= centerCoords[1] then
+                self.position[1] = centerCoords[1]
+            end
         end
     end
 
