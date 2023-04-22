@@ -1,6 +1,6 @@
 # Retro Pacman (In Development)
 
-Pacman is a classic arcade game where the player controls a character to eat all the food on a map while avoiding ghosts. This repository contains an implementation of the Pacman game in Lua with the Love2D framework, which can be played in desktop (Linux and Windows).
+Pacman is a classic arcade game where the player controls a character to eat all the food on a map while avoiding ghosts. This repository contains an implementation of the Pacman game in Lua with the Love2D framework, which can be played on desktop (Linux and Windows).
 
 ## Installation
 
@@ -26,7 +26,7 @@ cd pacman
 
 3. Build the game:
 - For Windows:
-    * enable execution for powerShell scripts
+    * enable execution for PowerShell scripts
     * run the build script in the root folder:
     
 <div style="font-size: 12px">
@@ -58,9 +58,11 @@ To play the game, use the arrow keys on your keyboard to move the Pacman charact
 
 You can customize many aspects of the game through config files which contain information for many game mechanics:
 
-- **Map**: the game uses a `mapdata` file for the grid information, such as wall allocation, corridors, tunnels, UI, etc. For accessibility and visualization purposes, a Python script converts a `map.png` image into the `mapdata` file. Follow the docs for modifying the map.
+- **Map Data**: the game uses a `mapdata` file for the grid information, such as wall allocation, corridors, tunnels, UI, etc. For accessibility and visualization purposes, a Python script converts a `map.png` image into the `mapdata` file. Follow the docs for modifying the map.
 
-- **Levels Data**: the game uses a `leveldata.csv` file for specifying game variables such as velocities, shiftings of game mode over time, etc. Follow the docs for modifying level data.
+- **Levels Data**: the game uses a `leveldata` file for specifying game variables such as velocities, shiftings of game mode over time, etc. Follow the docs for modifying level data.
+
+- **Game Data**: the game uses a `gamedata` file for specifying game constants such as lifes, screen size, etc. Follow the docs for modifying game data.
 
 ## Purpose
 

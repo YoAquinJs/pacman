@@ -1,5 +1,4 @@
 import os
-from sys import argv
 
 assetsExtensions = [".mp3", ".png"]
 exclude = {
@@ -8,7 +7,7 @@ exclude = {
 }
 
 firstFile = True
-with open(os.path.dirname(__file__) + '/' + argv[1], 'w') as configFile:
+with open(os.path.dirname(os.path.dirname(__file__)) + '\\datafiles\\assetsdata', 'w') as configFile:
     for root, dirs, files in os.walk(os.path.dirname(__file__)):
             pathFolders = root.split("\\")
             if pathFolders[-1] in exclude["dirs"]:
@@ -30,5 +29,5 @@ with open(os.path.dirname(__file__) + '/' + argv[1], 'w') as configFile:
                     break
 
 """
-python config.py assetsconfig
+python config.py
 """

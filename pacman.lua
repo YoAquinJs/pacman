@@ -5,7 +5,6 @@ Pacman.LoadPacman = function (grid, gameControl)
         grid = grid,
         gameControl = gameControl,
         ghosts = nil,
-        states = nil,
         ghostsEatened = 0,
 
         lastFrameTime = 0,
@@ -20,6 +19,7 @@ Pacman.LoadPacman = function (grid, gameControl)
         directionAxis = 1,
         tile = {grid.pacmanGridInfo.startTile[1], grid.pacmanGridInfo.startTile[2]},
         centerTile = {grid.pacmanGridInfo.startTile[1], grid.pacmanGridInfo.startTile[2]},
+        turnDistToCenter = -1,
 
         isInDots = false,
         tunnel = nil,
@@ -50,7 +50,7 @@ Pacman.LoadPacman = function (grid, gameControl)
         if self.ghostsEatened > 0 then
             for key, _ in pairs(self.ghosts) do
                 if math.abs(self.position[1] - self.ghosts[key].position[1]) < (self.grid.tilePX/2) and math.abs(self.position[2] - self.ghosts[key].position[2]) < (self.grid.tilePX/2)
-                and self.ghosts[key].state == self.states.FRIGHTENED then
+                and self.ghosts[key].state == self.gameControl.states.FRIGHTENED then
                     self.render = false
                     self.ghosts[key].render = false
                     self.gameControl:eatGhost(key, self.ghostsEatened)
@@ -60,10 +60,13 @@ Pacman.LoadPacman = function (grid, gameControl)
         end
 
         if self.tunnel == nil then
+            local tileCenterCoords, isIntersection = self.grid:getCenterCoordinates(self.tile[1], self.tile[2]), self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true
             if Utils.input.up and self.grid:getTileContent(self.tile[1], self.tile[2] - 1).content ~= self.grid.WALL then
                 self.nextDirection = {0, -1}
                 if self.directionAxis == 2 then
                     self.direction[2] = -1
+                elseif self.turnDistToCenter == -1 and isIntersection then
+                    self.turnDistToCenter = math.abs(tileCenterCoords[1]-self.position[1])
                 end
             end
             if Utils.input.down then
@@ -72,6 +75,8 @@ Pacman.LoadPacman = function (grid, gameControl)
                     self.nextDirection = {0, 1}
                     if self.directionAxis == 2 then
                         self.direction[2] = 1
+                    elseif self.turnDistToCenter == -1 and isIntersection then
+                        self.turnDistToCenter = math.abs(tileCenterCoords[1]-self.position[1])
                     end
                 end
             end
@@ -79,12 +84,16 @@ Pacman.LoadPacman = function (grid, gameControl)
                 self.nextDirection = {-1, 0}
                 if self.directionAxis == 1 then
                     self.direction[1] = -1
+                elseif self.turnDistToCenter == -1 and isIntersection then
+                    self.turnDistToCenter = math.abs(tileCenterCoords[2]-self.position[2])
                 end
             end
             if Utils.input.right and self.grid:getTileContent(self.tile[1] + 1, self.tile[2]).content ~= self.grid.WALL then
                 self.nextDirection = {1, 0}
                 if self.directionAxis == 1 then
                     self.direction[1] = 1
+                elseif self.turnDistToCenter == -1 and isIntersection then
+                    self.turnDistToCenter = math.abs(tileCenterCoords[2]-self.position[2])
                 end
             end
         end
@@ -120,7 +129,7 @@ Pacman.LoadPacman = function (grid, gameControl)
             end
         end
 
-        local centerCoords = self.grid:getCenterCoordinates(self.tile[1], self.tile[2])
+        local centerCoords, isIntersection = self.grid:getCenterCoordinates(self.tile[1], self.tile[2]), self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true
         if self.direction[1] ~= 0 and self.position[2] ~= centerCoords[2] then
             self.position[2] = centerCoords[2]
         elseif self.direction[2] ~= 0 and self.position[1] ~= centerCoords[1] then
@@ -128,9 +137,11 @@ Pacman.LoadPacman = function (grid, gameControl)
         end
 
         local cornerBoost = 1
-        if self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true then
-            if ((self.nextDirection[1] ~= 0 and self.directionAxis == 2) or (self.nextDirection[2] ~= 0 and self.directionAxis == 1)) then
-                cornerBoost = 1.5
+        if self.turnDistToCenter ~= -1 then
+            if math.abs(centerCoords[self.directionAxis] - self.position[self.directionAxis]) > self.turnDistToCenter or isIntersection == false then
+                self.turnDistToCenter = -1
+            else
+                cornerBoost = math.sqrt(2)
             end
         end
 
@@ -170,7 +181,7 @@ Pacman.LoadPacman = function (grid, gameControl)
                 self.lastFrameTime = time
                 self.frame = self.frame + 1
 
-                if self.frame > 13 then
+                if self.frame == 13 then
                     self.gameControl:pacmanDie()
                 end
 
@@ -186,7 +197,7 @@ Pacman.LoadPacman = function (grid, gameControl)
             end
 
             local img = "pacman/"..self.renderSprite
-            Utils:draw(img, self.position[1]-self.grid.tilePX+1, self.position[2]-self.grid.tilePX+1, self.grid.tilePX*2/Utils:getImgSize(img), {1,1,1})
+            Utils:draw(img, self.position[1]-self.grid.tilePX, self.position[2]-self.grid.tilePX, self.grid.tilePX*2/Utils:getImgSize(img), {1,1,1})
         end
     end
 

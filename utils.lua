@@ -1,9 +1,10 @@
 Utils = {
-    maxVolume = .5,
+    maxVolume = .7,
     sleeptTime = 0,
     programmedActions = {},
+    mute = false,
     images = {},
-    audio = {},
+    audios = {},
     input = {
         up=false,
         down=false,
@@ -21,15 +22,32 @@ Utils.getTime = function (self)
     return engine.timer.getTime() - self.sleeptTime
 end
 
-Utils.doAfter = function (self, time, action)
-    table.insert(self.programmedActions, {triggerTime=time + self:getTime(), action=action})
+Utils.cancelAction = function (self, key)
+    if self.programmedActions[key] ~= nil then
+        local timeLeft = self.programmedActions[key].triggerTime - self:getTime()
+        self.programmedActions[key] = nil
+        return timeLeft
+    end
+end
+
+Utils.programAction = function (self, time, action, key)
+    if key == nil then
+        key = tostring(action)
+    end
+    if self.programmedActions[key] ~= nil then
+        if key == tostring(action) then print("repeated non key action", key, debug.getinfo(2, "Sl").short_src) end
+        --self:cancelAction(key)
+    end
+    self.programmedActions[key] = {triggerTime=time + self:getTime(), action=action}
+
+    return key
 end
 
 Utils.update = function (self)
-    for i, action in ipairs(self.programmedActions) do
-        if action.triggerTime - self:getTime() < 0  then
-            action.action()
-            table.remove(self.programmedActions, i)
+    for key, programmedAction in pairs(self.programmedActions) do
+        if programmedAction.triggerTime - self:getTime() <= 0  then
+            programmedAction.action()
+            self.programmedActions[key] = nil
         end
     end
 
@@ -38,40 +56,66 @@ Utils.update = function (self)
     self.input.left  = engine.keyboard.isDown("a")
     self.input.down  = engine.keyboard.isDown("s")
     self.input.right = engine.keyboard.isDown("d")
-    self.input.start = engine.keyboard.isDown("space")
+    --self.input.start = engine.keyboard.isDown("space")
 end
 
-Utils.triggAudio = function (self, audio, volume, pitch, inloop, play)
-    if volume == nil then volume = 1 end
-    volume = volume*self.maxVolume
-    if pitch == nil then pitch = 1 end
-    if inloop == nil then inloop = false end
-
-    self.audio[audio]:setVolume(volume)
-    self.audio[audio]:setPitch(pitch)
-    self.audio[audio]:setLooping(inloop)
-
-    if play == true then
-        self.audio[audio]:play()
-    else
-        self.audio[audio]:stop()
+Utils.audio = function (self, audio, play, inloop, volume, pitch)
+    if play == false then
+        self.audios[audio]:stop()
+        return self.audios[audio]:getDuration()
     end
 
-    return self.audio[audio]:getDuration()
+    if type(volume) ~= "number" then volume = 1 end
+    if type(pitch) ~= "number" then pitch = 1 end
+    if inloop == nil then inloop = false end
+    if self.mute == true then volume = 0 end
+
+    volume = volume*self.maxVolume
+    self.audios[audio]:setVolume(volume)
+    self.audios[audio]:setPitch(pitch)
+    self.audios[audio]:setLooping(inloop)
+    self.audios[audio]:play()
+
+    return self.audios[audio]:getDuration()
+end
+
+Utils.muteWhile = function (self, audio, volume, pitch, unmute)
+    if type(volume) ~= "number" then volume = 1 end
+    if type(pitch) ~= "number" then pitch = 1 end
+    local duration = self:audio(audio, not self.mute, false, volume, pitch)
+
+    if self.mute == true then return duration end
+
+    local pastVolumes = {}
+    for key, _ in pairs(self.audios) do
+        pastVolumes[key] = self.audios[key]:getVolume()
+        if key ~= audio then
+            self.audios[key]:setVolume(0)
+        end
+    end
+
+    if type(unmute) ~= "number" then unmute = duration end
+    self:programAction(unmute, function ()
+        self.mute = false
+        for key, _ in pairs(self.audios) do
+            self.audios[key]:setVolume(pastVolumes[key])
+        end
+    end, "mute")
+    self.mute = true
+
+    return duration
 end
 
 Utils.isPlaying = function (self, audio)
-    if self.audio[audio] == nil then
-        return false
-    else
-        return self.audio[audio]:isPlaying()
-    end
+    return self.audios[audio]:isPlaying()
 end
 
 Utils.stopAllSounds = function (self)
-    for key, _ in pairs(self.audio) do
-        self.audio[key]:stop()
+    for key, _ in pairs(self.audios) do
+        self.audios[key]:stop()
     end
+    self.programmedActions["mute"] = nil
+    self.mute = false
 end
 
 Utils.getImgSize = function (self, img)
@@ -79,14 +123,12 @@ Utils.getImgSize = function (self, img)
     return width
 end
 
-Utils.draw = function (self, img, x, y, scale, color, rotation)
-    if rotation == nil then rotation = 0 end
-
+Utils.draw = function (self, img, x, y, scale, color)
     engine.graphics.setColor(color[1],color[2],color[3])
-    engine.graphics.draw(self.images[img], x, y, rotation, scale, scale)
+    engine.graphics.draw(self.images[img], x, y, 0, scale, scale)
 end
 
-Utils.drawText = function (self, text, x, y, scale, color, centerd, shadowColor, rotation)
+Utils.drawText = function (self, text, x, y, scale, color, centerd, shadowColor)
     text = string.lower(text)
 
     local charSize, zeroCount = 6, 0
@@ -117,13 +159,13 @@ Utils.drawText = function (self, text, x, y, scale, color, centerd, shadowColor,
         end
 
         if shadowColor ~= nil then
-            self:draw(charImg, x+(charSize*(i-1)*scale) - (.36*scale), y - (.6*scale), scale*1.15, {shadowColor[1],shadowColor[2],shadowColor[3]}, rotation)
+            self:draw(charImg, x+(charSize*(i-1)*scale) - (.36*scale), y - (.6*scale), scale*1.15, {shadowColor[1],shadowColor[2],shadowColor[3]})
         end
 
         if isPropup == true then
-            self:draw(charImg, x+(charSize*(i-2)*scale), y, scale, {color[1],color[2],color[3]}, rotation)
+            self:draw(charImg, x+(charSize*(i-2)*scale), y, scale, {color[1],color[2],color[3]})
         else
-            self:draw(charImg, x+(charSize*(i-1)*scale), y, scale, {color[1],color[2],color[3]}, rotation)
+            self:draw(charImg, x+(charSize*(i-1)*scale), y, scale, {color[1],color[2],color[3]})
         end
 
         ::continue::
@@ -131,7 +173,7 @@ Utils.drawText = function (self, text, x, y, scale, color, centerd, shadowColor,
 end
 
 Utils.start = function (self)
-    local assetsConfigFile = assert(io.open("assets/assetsconfig", "r"))
+    local assetsConfigFile = assert(io.open("./datafiles/assetsdata", "r"))
 
     for assetInfo in assetsConfigFile:lines() do
         local path, key = string.match(assetInfo, "^(.-)~"), string.match(assetInfo, "~(.+)$")
@@ -141,13 +183,13 @@ Utils.start = function (self)
             self.images[key] = engine.graphics.newImage(path)
             self.images[key]:setFilter("nearest", "nearest")
         elseif extension == "mp3" then
-            self.audio[key] = engine.audio.newSource(path, "static")
+            self.audios[key] = engine.audio.newSource(path, "static")
         else
             print("Non managed asset extension being imported: ", assetInfo)
         end
     end
 
-    assetsConfigFile:close()
+    io.close(assetsConfigFile)
 end
 
 return Utils

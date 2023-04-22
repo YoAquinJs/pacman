@@ -8,6 +8,8 @@ Grid.LoadGrid = function (gameControl, tilePX)
         tilePX = tilePX,
         TILES = {},
         tunnels = {},
+        biscuits={},
+        pills={},
         consumables = 0,
         blinkyGridInfo = {},
         inkyGridInfo = {},
@@ -23,27 +25,17 @@ Grid.LoadGrid = function (gameControl, tilePX)
         TUNNEL        = 5,
         WALKABLE      = 6,
         draw = function (self)
-            engine.graphics.setColor(self.mazeColor[1],self.mazeColor[2],self.mazeColor[3])
-            local mazeImg = "maze/maze"
-            if self.gameControl.winTime ~= 0 then mazeImg = "maze/winmaze" end
+            Utils:draw(self.mazeImg, self.mazeImgCoords[1], self.mazeImgCoords[2], self.tilePX/(Utils:getImgSize(self.mazeImg)/(#self.TILES-4)), self.mazeColor)
 
-            Utils:draw(mazeImg, self.mazeImgCoords[1], self.mazeImgCoords[2], self.tilePX/(Utils:getImgSize(mazeImg)/(#self.TILES-4)), self.mazeColor)
+            local imgSize = Utils:getImgSize("props/dot")
+            local scale = self.tilePX*2/imgSize
+            engine.graphics.setColor(1,1,1)
 
-            for x=1,#self.TILES do
-                for y=1,#self.TILES[x] do
-                    engine.graphics.setColor(1,1,1)
-                    local coordinates = self:getCenterCoordinates(x, y)
-
-                    if self.TILES[x][y].consumable == self.BISCUIT then--BISCUIT
-                        local img, imgSize = "props/dot", Utils:getImgSize("props/dot")
-                        local scale = self.tilePX*2/imgSize
-                        Utils:draw(img, coordinates[1]-(imgSize*scale/2), coordinates[2]-(imgSize*scale/2), scale, {1,1,1})
-                    elseif self.TILES[x][y].consumable == self.PILL then--PILL
-                        local img, imgSize = "props/pill", Utils:getImgSize("props/pill")
-                        local scale = self.tilePX*2/imgSize
-                        Utils:draw(img, coordinates[1]-(imgSize*scale/2), coordinates[2]-(imgSize*scale/2), scale, {1,1,1})
-                    end
-                end
+            for _, coords in pairs(self.biscuits) do
+                engine.graphics.draw(Utils.images["props/dot"], coords[1], coords[2], 0, scale, scale)
+            end
+            for _, coords in pairs(self.pills) do
+                engine.graphics.draw(Utils.images["props/pill"], coords[1], coords[2], 0, scale, scale)
             end
         end,
         getTile = function (self, x, y)
@@ -65,20 +57,25 @@ Grid.LoadGrid = function (gameControl, tilePX)
         consume = function (self, consumable, tileX, tileY)
             self.consumables = self.consumables - 1
             self.TILES[tileX][tileY].consumable = nil
-            self.gameControl.score = self.gameControl.score + 10
 
             if consumable == self.PILL then
-                self.gameControl.score = self.gameControl.score + 40
+                self.gameControl:addScore(50)
                 self.gameControl:frightenedMode()
+                self.pills[tileX..":"..tileY] = nil
+            else
+            self.gameControl:addScore(10)
+                self.biscuits[tileX..":"..tileY] = nil
             end
 
             if self.consumables == 0 then
-                self.gameControl:winLevel()
+                Utils:programAction(-1, function ()
+                    self.gameControl:winLevel()
+                end)
             end
         end,
         reloadConsumeables = function (self)
             self.consumables = 0
-            local mapFile = assert(io.open("map/mapdata", "r"))
+            local mapFile = assert(io.open("./datafiles/mapdata", "r"))
 
             local mapStr = mapFile:read("a")
             local x, y = 1, 1
@@ -93,9 +90,15 @@ Grid.LoadGrid = function (gameControl, tilePX)
                     if parsedC == self.BISCUIT then
                         self.TILES[x][y].consumable = self.BISCUIT
                         self.consumables = self.consumables + 1
+
+                        local coordinates = self:getCoordinates(x, y)
+                        self.biscuits[x..":"..y] = {coordinates[1]-(self.tilePX/2), coordinates[2]-(self.tilePX/2)}
                     elseif parsedC == self.PILL then
                         self.TILES[x][y].consumable = self.PILL
                         self.consumables = self.consumables + 1
+
+                        local coordinates = self:getCoordinates(x, y)
+                        self.pills[x..":"..y] = {coordinates[1]-(self.tilePX/2), coordinates[2]-(self.tilePX/2)}
                     end
 
                     x = x + 1
@@ -103,10 +106,10 @@ Grid.LoadGrid = function (gameControl, tilePX)
             end
 
             io.close(mapFile)
-        end
+        end,
     }
 
-    local mapFile = assert(io.open("map/mapdata", "r"))
+    local mapFile = assert(io.open("./datafiles/mapdata", "r"))
 
     local mapStr = mapFile:read("a")
     local x, y = 1, 1
@@ -133,18 +136,26 @@ Grid.LoadGrid = function (gameControl, tilePX)
                 elseif parsedC == grid.BISCUIT then
                     grid.TILES[x][y] = {content=grid.EMPTY, consumable = grid.BISCUIT, walkable = true}
                     grid.consumables = grid.consumables + 1
+
+                    local coordinates = grid:getCoordinates(x, y)
+                    grid.biscuits[x..":"..y] = {coordinates[1]-(grid.tilePX/2), coordinates[2]-(grid.tilePX/2)}
                 elseif parsedC == grid.PILL then
                     grid.TILES[x][y] = {content=grid.EMPTY, consumable = grid.PILL, walkable = true}
                     grid.consumables = grid.consumables + 1
+
+                    local coordinates = grid:getCoordinates(x, y)
+                    grid.pills[x..":"..y] = {coordinates[1]-(grid.tilePX/2), coordinates[2]-(grid.tilePX/2)}
                 elseif parsedC == grid.TUNNEL then
                     grid.TILES[x][y] = {content=grid.TUNNEL, tunnelHallway=true, tunnelExit={}}
                     table.insert(grid.tunnels, {x, y})
                 elseif parsedC == grid.WALKABLE then
                     grid.TILES[x][y] = {content=grid.EMPTY, walkable = true}
-                elseif parsedC == grid.BLOCK and grid.ghostSpawnCenterCoordinates == nil and grid.ghostSpawnCenterCoordinates == nil then
+                elseif parsedC == grid.BLOCK and grid.spawnXCenter == nil then
                     local blockCoordinates = grid:getCoordinates(x, y)
-                    grid.ghostSpawnCenterCoordinates = {blockCoordinates[1] + grid.tilePX - 1, blockCoordinates[2] + (grid.tilePX * 2.5)}
-                    grid.ghostSpawnEntranceCoordinates = {blockCoordinates[1] + grid.tilePX - 1, blockCoordinates[2] - (grid.tilePX/2)}end
+                    grid.spawnXCenter = blockCoordinates[1] + grid.tilePX
+                    grid.spawnYEntrance = blockCoordinates[2] - (grid.tilePX/2)
+                    grid.spawnYRange = {blockCoordinates[2] + (grid.tilePX*1.9), blockCoordinates[2] + (grid.tilePX*3.1)}
+                end
             end
 
             if c == "M" then --Player Grid Info
@@ -161,17 +172,17 @@ Grid.LoadGrid = function (gameControl, tilePX)
             elseif c == "I" then --Inky Grid Info
                 grid.TILES[x][y] = {content=grid.EMPTY}
                 local centerCoords = grid:getCenterCoordinates(x, y)
-                grid.inkyGridInfo.startTile = {x, y}
+                grid.inkyGridInfo.startTile = {grid.blinkyGridInfo.startTile[1], grid.blinkyGridInfo.startTile[2]}
                 grid.inkyGridInfo.startPosition = {centerCoords[1] + (grid.tilePX/2), centerCoords[2]}
             elseif c == "P" then --Pinky Grid Info
                 grid.TILES[x][y] = {content=grid.EMPTY}
                 local centerCoords = grid:getCenterCoordinates(x, y)
-                grid.pinkyGridInfo.startTile = {x, y}
+                grid.pinkyGridInfo.startTile = {grid.blinkyGridInfo.startTile[1], grid.blinkyGridInfo.startTile[2]}
                 grid.pinkyGridInfo.startPosition = {centerCoords[1] + (grid.tilePX/2), centerCoords[2]}
             elseif c == "C" then --Clyde Grid Info
                 grid.TILES[x][y] = {content=grid.EMPTY}
                 local centerCoords = grid:getCenterCoordinates(x, y)
-                grid.clydeGridInfo.startTile = {x, y}
+                grid.clydeGridInfo.startTile = {grid.blinkyGridInfo.startTile[1], grid.blinkyGridInfo.startTile[2]}
                 grid.clydeGridInfo.startPosition = {centerCoords[1] + (grid.tilePX/2), centerCoords[2]}
             elseif c == "b" then --Blinky Scatter Tile
                 grid.TILES[x][y] = {content=grid.EMPTY}
@@ -221,7 +232,7 @@ Grid.LoadGrid = function (gameControl, tilePX)
                 local centerCoords = grid:getCenterCoordinates(x, y)
                 grid.propSpawnCoords = {centerCoords[1] + (grid.tilePX/2), centerCoords[2]}
                 grid.TILES[x][y] = {content=grid.EMPTY, walkable=true}
-            elseif c == "-" then --PROPSPAWN
+            elseif c == "-" then --TUNNELHALLWAY
                 grid.TILES[x][y] = {content=grid.EMPTY, tunnelHallway=true}
             end
             x = x + 1

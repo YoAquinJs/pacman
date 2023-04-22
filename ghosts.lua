@@ -7,7 +7,7 @@ Ghosts.states = {
     EATEN=3
 }
 
-function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, startTimeInSpawn)
+function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsInSpawn, direction)
     local ghost = {
         grid = grid,
         pacman = pacman,
@@ -15,26 +15,74 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, startT
         name = name,
 
         lastFrameTime = 0,
-        nextFrameTime = 0.1,
+        nextFrameTime = 0.15,
         frame = 1,
         renderSprite = "l1",
         frightenedColor="B",
         renderType = name,
         velocity = 8,
+        bumpsInSpawn = bumpsInSpawn,
+        bumps=0,
         state = Self.states.CHASE,
         position = {ghostStart.startPosition[1], ghostStart.startPosition[2]},
-        direction = {0, 0},
+        direction = direction,
         directionAxis = 1,
         tile = {ghostStart.startTile[1], ghostStart.startTile[2]},
         nextTile = {ghostStart.startTile[1], ghostStart.startTile[2]},
         target = {1, 1},
 
-        spawn = {true, "in", true},
+        inSpawn = bumpsInSpawn ~= 0,
+        spawnDir = 1,
         tunnel = nil,
-        stateDuration = 10,
-        stateTimeBegin = 0,
+        turnFrightened = false,
         stoped = false,
-        render = true
+        render = true,
+        getDirection = function (self)
+            self.target = self:getTarget()
+            local closestDistance, nextDirection, distance, possibleRoute = 100000, {0, 0}, 0, {}
+            possibleRoute[1] = self.grid:getTileContent(self.tile[1]+1, self.tile[2]).content ~= self.grid.WALL and self.direction[1] ~= -1 --Right
+            possibleRoute[2] = self.grid:getTileContent(self.tile[1], self.tile[2]+1).content ~= self.grid.WALL and self.direction[2] ~= -1 --Down
+            possibleRoute[3] = self.grid:getTileContent(self.tile[1]-1, self.tile[2]).content ~= self.grid.WALL and self.direction[1] ~= 1 --Left
+            possibleRoute[4] = self.grid:getTileContent(self.tile[1], self.tile[2]-1).content ~= self.grid.WALL and self.direction[2] ~= 1 --Up
+            if self.state == Self.states.FRIGHTENED then
+                local random = math.floor(math.random(1, 4))
+                while possibleRoute[random] == false do
+                    random = math.floor(math.random(1, 4))
+                end
+                nextDirection = {(random % 2)*(2-random), (1 - (random % 2))*(3-random)}
+            else
+                if possibleRoute[1] == true then--Right
+                    distance = math.sqrt(((self.target[1]-(self.tile[1]+1))^2) + ((self.target[2]-self.tile[2])^2))
+                    if distance < closestDistance then
+                        closestDistance = distance
+                        nextDirection = {1, 0}
+                    end
+                end
+                if possibleRoute[2] == true then--Down
+                    distance = math.sqrt(((self.target[1]-self.tile[1])^2) + ((self.target[2]-(self.tile[2]+1))^2))
+                    if distance <= closestDistance then
+                        closestDistance = distance
+                        nextDirection = {0, 1}
+                    end
+                end
+                if possibleRoute[3] == true then--Left
+                    distance = math.sqrt(((self.target[1]-(self.tile[1]-1))^2) + ((self.target[2]-self.tile[2])^2))
+                    if distance <= closestDistance then
+                        closestDistance = distance
+                        nextDirection = {-1, 0}
+                    end
+                end
+                if possibleRoute[4] == true then--Up
+                    distance = math.sqrt(((self.target[1]-self.tile[1])^2) + ((self.target[2]-(self.tile[2]-1))^2))
+                    if distance <= closestDistance then
+                        closestDistance = distance
+                        nextDirection = {0, -1}
+                    end
+                end
+            end
+            self.direction = {nextDirection[1], nextDirection[2]}
+            self.directionAxis = math.abs(nextDirection[1]) + math.abs(2 * nextDirection[2])
+        end
     }
 
     ghost.update = function (self, dt)
@@ -61,67 +109,65 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, startT
             self.gameControl:eatPacman()
         end
 
-        if self.spawn[1] == true then
-            if self.spawn[2] == "out" then
-                if math.abs(self.position[1] - self.grid.ghostSpawnEntranceCoordinates[1]) >= 3 then
-                    if (self.grid.ghostSpawnEntranceCoordinates[1] - self.position[1]) > 0 then
-                        self.direction = {1, 0}
-                    else
-                        self.direction = {-1, 0}
-                    end
-                    self.directionAxis = 1
-                elseif self.position[2] > self.grid.ghostSpawnEntranceCoordinates[2] then
-                    self.direction = {0, -1}
-                    self.directionAxis = 2
-                else
-                    self.spawn[1] = false
-
-                    local closestDistance, nextDirection, distance = 100000, {0, 0}, 0
-
-                    distance = math.sqrt(((self.target[1]-(self.tile[1]+1))^2) + ((self.target[2]-self.tile[2])^2))
-                    if distance < closestDistance then
-                        closestDistance = distance
-                        nextDirection = {1, 0}
-                    end
-                    distance = math.sqrt(((self.target[1]-(self.tile[1]-1))^2) + ((self.target[2]-self.tile[2])^2))
-                    if distance <= closestDistance then
-                        closestDistance = distance
-                        nextDirection = {-1, 0}
-                    end
-
-                    self.direction = {nextDirection[1], nextDirection[2]}
-                    self.directionAxis = math.abs(nextDirection[1]) + math.abs(2 * nextDirection[2])
-                end
-            elseif self.spawn[2] == "in" then
-                if self.spawn[3] == true then
-                    if self.position[1] >= self.grid.ghostSpawnCenterCoordinates[1] + (self.grid.tilePX*2) then
-                        self.direction = {-1, 0}
-                    elseif self.position[1] <= self.grid.ghostSpawnCenterCoordinates[1] - (self.grid.tilePX*2) then
-                        self.direction = {1, 0}
-                    end
-                else
-                    if math.abs(self.position[1] - self.grid.ghostSpawnCenterCoordinates[1]) >= 3 then
-                        if (self.grid.ghostSpawnCenterCoordinates[1] - self.position[1]) > 0 then
-                            self.direction = {1, 0}
+        ::enterspawn::
+        if self.inSpawn == true then
+            if self.bumps < self.bumpsInSpawn then
+                if self.direction[2] == -1 and self.grid.spawnYRange[1] >= self.position[2] then
+                    self.position[2] = self.grid.spawnYRange[1]
+                    self.direction[2] = 1
+                    self.bumps = self.bumps + 1
+                    if self.bumps > self.bumpsInSpawn-1 then
+                        if self.position[1] < self.grid.spawnXCenter then
+                            self.direction = {1,0}
                         else
-                            self.direction = {-1, 0}
+                            self.direction = {-1,0}
                         end
-                    elseif self.position[2] < self.grid.ghostSpawnCenterCoordinates[2] then
-                        self.direction = {0, 1}
-                    else
-                        self.spawn[2] = "out"
-                        self.state = self.gameControl.generalState
+                    end
+                elseif self.direction[2] == 1 and self.grid.spawnYRange[2] <= self.position[2] then
+                    self.position[2] = self.grid.spawnYRange[2]
+                    self.direction[2] = -1
+                    self.bumps = self.bumps + 1
+                    if self.bumps > self.bumpsInSpawn-1 then
+                        if self.position[1] < self.grid.spawnXCenter then
+                            self.direction = {1,0}
+                        else
+                            self.direction = {-1,0}
+                        end
+                    end
+                end
+            else
+                if self.position[1] ~= self.grid.spawnXCenter then
+                    if (self.direction[1] == -1 and self.grid.spawnXCenter >= self.position[1]) or (self.direction[1] == 1 and self.grid.spawnXCenter <= self.position[1]) then
+                        self.position[1] = self.grid.spawnXCenter
+                        self.direction = {0,-1*self.spawnDir}
+                    end
+                else
+                    if self.spawnDir == -1 then
+                        if self.position[2] >= self.grid.spawnYRange[2] then
+                            self.position[2] = self.grid.spawnYRange[2]
+                            self.spawnDir = 1
+                            self.direction = {0,-1}
+                            self.state = self.gameControl.generalState
+                            if self.turnFrightened == true then self.state = Self.states.FRIGHTENED end
 
-                        local anyEaten = false
-                        for key, _ in pairs(self.gameControl.ghosts) do
-                            if self.gameControl.ghosts[key].state == Self.states.EATEN then
-                                anyEaten = true
+                            local anyEaten = false
+                            for key, _ in pairs(self.gameControl.ghosts) do
+                                if self.gameControl.ghosts[key].state == Self.states.EATEN then
+                                    anyEaten = true
+                                    break
+                                end
+                            end
+
+                            if anyEaten == false then
+                                Utils:audio("eaten", false)
+                                Utils:audio("siren", not self.gameControl.isFrightened, true, 1, self.gameControl.sirenPitch)
+                                Utils:audio("frigthtened", self.gameControl.isFrightened, true)
                             end
                         end
-
-                        if anyEaten == false then
-                            Utils:triggAudio("eaten", 1, 1, false, false)
-                        end
+                    elseif self.position[2] <= self.grid.spawnYEntrance then
+                        self.position[2] = self.grid.spawnYEntrance
+                        self.inSpawn = false
+                        self:getDirection()
                     end
                 end
             end
@@ -129,73 +175,24 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, startT
             if self.position[self.directionAxis] * self.direction[self.directionAxis]+1 >=
             self.grid:getCenterCoordinates(self.nextTile[1], self.nextTile[2])[self.directionAxis] * self.direction[self.directionAxis] then
                 if self.state == Self.states.EATEN and self.tile[2] == self.grid.eatenTargetTile[2] and (self.tile[1] == self.grid.eatenTargetTile[1] or self.tile[1] == self.grid.eatenTargetTile[1+1]) then
-                    self.spawn = {true, "in"}
+                    self.spawnDir = -1
+                    self.inSpawn = true
+                    goto enterspawn
                 end
-
                 if self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true then
-                    self.target = self:getTarget()
-                    local closestDistance, nextDirection, distance, possibleRoute = 100000, {0, 0}, 0, {}
-
-                    possibleRoute[1] = self.grid:getTileContent(self.tile[1]+1, self.tile[2]).content ~= self.grid.WALL and self.direction[1] ~= -1 --Right
-                    possibleRoute[2] = self.grid:getTileContent(self.tile[1], self.tile[2]+1).content ~= self.grid.WALL and self.direction[2] ~= -1 --Down
-                    possibleRoute[3] = self.grid:getTileContent(self.tile[1]-1, self.tile[2]).content ~= self.grid.WALL and self.direction[1] ~= 1 --Left
-                    possibleRoute[4] = self.grid:getTileContent(self.tile[1], self.tile[2]-1).content ~= self.grid.WALL and self.direction[2] ~= 1 --Up
-
-                    if self.state == Self.states.FRIGHTENED then
-                        local random = math.floor(math.random(1, 4))
-                        while possibleRoute[random] == false do
-                            random = math.floor(math.random(1, 4))
-                        end
-
-                        nextDirection = {(random % 2)*(2-random), (1 - (random % 2))*(3-random)}
-                    else
-                        if possibleRoute[1] == true then--Right
-                            distance = math.sqrt(((self.target[1]-(self.tile[1]+1))^2) + ((self.target[2]-self.tile[2])^2))
-                            if distance < closestDistance then
-                                closestDistance = distance
-                                nextDirection = {1, 0}
-                            end
-                        end
-                        if possibleRoute[2] == true then--Down
-                            distance = math.sqrt(((self.target[1]-self.tile[1])^2) + ((self.target[2]-(self.tile[2]+1))^2))
-                            if distance <= closestDistance then
-                                closestDistance = distance
-                                nextDirection = {0, 1}
-                            end
-                        end
-                        if possibleRoute[3] == true then--Left
-                            distance = math.sqrt(((self.target[1]-(self.tile[1]-1))^2) + ((self.target[2]-self.tile[2])^2))
-                            if distance <= closestDistance then
-                                closestDistance = distance
-                                nextDirection = {-1, 0}
-                            end
-                        end
-                        if possibleRoute[4] == true then--Up
-                            distance = math.sqrt(((self.target[1]-self.tile[1])^2) + ((self.target[2]-(self.tile[2]-1))^2))
-                            if distance <= closestDistance then
-                                closestDistance = distance
-                                nextDirection = {0, -1}
-                            end
-                        end
-                    end
-
-                    self.direction = {nextDirection[1], nextDirection[2]}
-                    self.directionAxis = math.abs(nextDirection[1]) + math.abs(2 * nextDirection[2])
+                    self:getDirection()
                 end
-
                 local centerCoords = self.grid:getCenterCoordinates(self.tile[1], self.tile[2])
                 if self.direction[1] ~= 0 and self.position[2] ~= centerCoords[2] then
                     self.position[2] = centerCoords[2]
                 elseif self.direction[2] ~= 0 and self.position[1] ~= centerCoords[1] then
                     self.position[1] = centerCoords[1]
                 end
-
                 self.nextTile[self.directionAxis] = self.nextTile[self.directionAxis] + self.direction[self.directionAxis]
                 if self.tunnel ~= nil then
                     if self.pacman.tunnel ~= nil then
                         self.gameControl:eatPacman()
                     end
-
                     self.tile = {self.tunnel[1], self.tunnel[2]}
                     self.nextTile = {self.tunnel[1] + self.direction[1], self.tunnel[2]}
                     local centerCoordinates = self.grid:getCenterCoordinates(self.tunnel[1], self.tunnel[2])
@@ -256,28 +253,20 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, startT
 
         local img = self.renderType.."/"..self.renderSprite
         Utils:draw(img, self.position[1]-self.grid.tilePX, self.position[2]-self.grid.tilePX, self.grid.tilePX*2/Utils:getImgSize(img), {1,1,1})
-
-        --local debugCoordinates = self.grid:getCenterCoordinates(self.tile[1], self.tile[2])
-        --engine.graphics.setColor(1,0,0)
-        --love.graphics.setPointSize(4)
-        --engine.graphics.points(debugCoordinates[1], debugCoordinates[2])
     end
 
     ghost.lastFrameTime = Utils:getTime()
 
-    Utils:doAfter(startTimeInSpawn, function ()
-        ghost.spawn[2] = "out"
-        ghost.spawn[3] = false
-    end)
+    if ghost.direction[1] == -1 then ghost.renderSprite = "l1" end
+    if ghost.direction[2] == 1 then ghost.renderSprite = "b1" end
+    if ghost.direction[2] == -1 then ghost.renderSprite = "u1" end
     return ghost
 end
 
 Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman)
-    Blinky, Inky, Pinky, Clyde = Ghosts:Ghost(grid, grid.blinkyGridInfo, gameControl, pacman, "blinky", 0), Ghosts:Ghost(grid, grid.inkyGridInfo, gameControl, pacman, "inky", 2),
-                                 Ghosts:Ghost(grid, grid.pinkyGridInfo, gameControl, pacman, "pinky", 0), Ghosts:Ghost(grid, grid.clydeGridInfo, gameControl, pacman, "clyde", 5)
+    Blinky, Inky, Pinky, Clyde = Ghosts:Ghost(grid, grid.blinkyGridInfo, gameControl, pacman, "blinky", 0, {-1, 0}), Ghosts:Ghost(grid, grid.inkyGridInfo, gameControl, pacman, "inky", 14, {0,-1}),
+                                 Ghosts:Ghost(grid, grid.pinkyGridInfo, gameControl, pacman, "pinky", 1, {0,1}), Ghosts:Ghost(grid, grid.clydeGridInfo, gameControl, pacman, "clyde", 42, {0,-1})
 
-    Blinky.spawn[1] = false
-    Blinky.direction = {-1, 0}
     Blinky.getTarget = function (self)
         if self.state == Self.states.SCATTER then
             return {grid.blinkyGridInfo.scatterTile[1], grid.blinkyGridInfo.scatterTile[2]}
@@ -288,7 +277,6 @@ Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman)
         end
     end
 
-    Pinky.spawn[2] = "out"
     Pinky.getTarget = function (self)
         if self.state == Self.states.SCATTER then
             return {grid.pinkyGridInfo.scatterTile[1], grid.pinkyGridInfo.scatterTile[2]}
@@ -302,7 +290,6 @@ Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman)
         end
     end
 
-    Inky.direction = {1, 0}
     Inky.getTarget = function (self)
         if self.state == Self.states.SCATTER then
             return {grid.inkyGridInfo.scatterTile[1], grid.inkyGridInfo.scatterTile[2]}
@@ -318,7 +305,6 @@ Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman)
         end
     end
 
-    Clyde.direction = {-1, 0}
     Clyde.getTarget = function (self)
         if self.state == Self.states.SCATTER then
             return {grid.clydeGridInfo.scatterTile[1], grid.clydeGridInfo.scatterTile[2]}

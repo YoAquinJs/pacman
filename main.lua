@@ -4,7 +4,8 @@ require("gamecontrol")
 require("utils")
 
 function engine.load()
-    _G.GameControl = GameControl.LoadGameControl(24) --Tile size determinating screen and elements sizes
+    _G.GameControl = GameControl.LoadGameControl() --Tile size determinating screen and elements sizes
+    GameControl.currentLevelInfo.level = -1
     _G.Utils = Utils
     Utils:start()
 
@@ -13,14 +14,17 @@ function engine.load()
     #GameControl.grid.TILES[1]*GameControl.grid.tilePX - GameControl.grid.tilePX, {display = 2, fullscreen=false, centered=true})
 
     Utils.sleeptTime = engine.timer.getTime()
-    --GameControl:startLevel(5, false)
 end
 
 function engine.update(dt)
     Utils:update()
     GameControl:update(dt, Utils:getTime())
+    Utils.input.start = false
 end
 
+function engine.keyreleased(key)
+    Utils.input.start = key == "space"
+end
 
 function engine.draw()
     GameControl:draw(Utils:getTime())
@@ -29,10 +33,8 @@ function engine.draw()
 end
 
 --TODO
--- Refactor with Utils.doAfter
 -- Needed optimization for raspberry
 --DOCS
+-- license
+-- Docs
 --BUGS
--- Spontaneous invalid tile (ghost) grid fetch (possible corrected as for checking walls when fliping direction on state change)
--- pacman bugs in tunnel (possible lack of frames)
--- Ghost bug entering spawn due to lack of frames (Raspberry pi)
