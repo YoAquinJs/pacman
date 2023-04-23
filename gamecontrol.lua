@@ -31,7 +31,7 @@ GameControl.LoadGameControl = function ()
         reachHighscore = false,
         nameTagColor = {.2,.2,.6},
         nameTag={1, {65, 65, 65, 65, 65}, 0},
-        tag = "",
+        tag = nil,
         drawables={},
         lifes=5,
         generalState=nil,
@@ -52,15 +52,17 @@ GameControl.LoadGameControl = function ()
                 end, "propdestroy")
             end, "propspawn")
         end,
-        triggerPhaseChange = function (self, timeLeft)
+        triggerPhaseChange = function (self, timeLeft, flip)
             if self.generalState ~= self.currentLevelInfo.shifts[self.currentLevelInfo.phase][1] then
                 self.generalState = self.currentLevelInfo.shifts[self.currentLevelInfo.phase][1]
                 for key, _ in pairs(self.ghosts) do
                     if self.ghosts[key].state ~= self.states.EATEN then
                         self.ghosts[key].state = self.generalState
-                        local oppostiteDirContent = self.grid:getTileContent(self.ghosts[key].tile[1] - self.ghosts[key].direction[2], self.ghosts[key].tile[2] - self.ghosts[key].direction[2]).content
-                        if oppostiteDirContent ~= self.grid.WALL and oppostiteDirContent ~= self.grid.BLOCK then
-                            self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
+                        if flip == nil then
+                            local oppostiteDirContent = self.grid:getTileContent(self.ghosts[key].tile[1] - self.ghosts[key].direction[1], self.ghosts[key].tile[2] - self.ghosts[key].direction[2]).content
+                            if oppostiteDirContent ~= self.grid.WALL and oppostiteDirContent ~= self.grid.BLOCK then
+                                self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
+                            end
                         end
                     end
                 end
@@ -105,8 +107,8 @@ GameControl.LoadGameControl = function ()
                 self.currentLevelInfo.data = self.levels.levelData[#self.levels.levelData]
             end
 
-            self.pacman = Pacman.LoadPacman(self.grid, self)
-            local GhostsObjs = Ghosts:LoadGhosts(self.grid, self, self.pacman)
+            self.pacman = Pacman.LoadPacman(self.grid, {self.pacmanDir[1], self.pacmanDir[2]}, self)
+            local GhostsObjs = Ghosts:LoadGhosts(self.grid, self, self.pacman, {self.blinkyDir[1], self.blinkyDir[2]})
             self.ghosts = GhostsObjs
             self.states = Ghosts.states
             self.pacman.ghosts = GhostsObjs
@@ -123,7 +125,7 @@ GameControl.LoadGameControl = function ()
                 if self.highscores[i][1] == self:getNameTag() then self.nameTagColor = {.8,.6,.01} end
             end
 
-            self:triggerPhaseChange(self.currentLevelInfo.timeLeftForShift)
+            self:triggerPhaseChange(self.currentLevelInfo.timeLeftForShift, false)
             self:triggerProp()
         end,
         addScore = function (self, add)
@@ -159,7 +161,7 @@ GameControl.LoadGameControl = function ()
                     self.ghosts[key].state = self.states.FRIGHTENED
                     self.ghosts[key].nextFrameTime = 0.2
                     self.ghosts[key].frightenedColor = "B"
-                    local oppostiteDirContent = self.grid:getTileContent(self.ghosts[key].tile[1] - self.ghosts[key].direction[2], self.ghosts[key].tile[2] - self.ghosts[key].direction[2]).content
+                    local oppostiteDirContent = self.grid:getTileContent(self.ghosts[key].tile[1] - self.ghosts[key].direction[1], self.ghosts[key].tile[2] - self.ghosts[key].direction[2]).content
                     if oppostiteDirContent ~= self.grid.WALL and oppostiteDirContent ~= self.grid.BLOCK then
                         self.ghosts[key].direction[self.ghosts[key].directionAxis] = self.ghosts[key].direction[self.ghosts[key].directionAxis]*-1
                     end
@@ -256,8 +258,9 @@ GameControl.LoadGameControl = function ()
                         self.drawables["pressanykey"] = {text="PRESS ANY KEY TO CONTINUE", coordinates={engine.graphics.getWidth()/2, self.pressAnyKeyLabel[2]}, color={1,1,1}, scale=2, isPopup=""}
                     end)
                 end)
-                table.insert(self.highscores, {self:getNameTag(), self.score})
+                table.insert(self.highscores, {self.tag, self.score})
                 self:serializeScores()
+                self.tag = nil
             else
                 self:startLevel(self.currentLevelInfo.level, true)
             end
@@ -616,11 +619,11 @@ GameControl.LoadGameControl = function ()
                 char = 65
             end
         elseif constant == "pacmanStartDirection" then
-            local coma = string.find(gameDataString, ",")
-            gameControl.pacmanDir = {tonumber(value:sub(1, coma-1)), tonumber(value:sub(coma-1, #value))}
+            local coma = string.find(value, ",")
+            gameControl.pacmanDir = {tonumber(value:sub(1, coma-1)), tonumber(value:sub(coma+1, #value))}
         elseif constant == "blinkyStartDirection" then
-            local coma = string.find(gameDataString, ",")
-            gameControl.blinkyDir = {tonumber(value:sub(1, coma-1)), tonumber(value:sub(coma-1, #value))}
+            local coma = string.find(value, ",")
+            gameControl.blinkyDir = {tonumber(value:sub(1, coma-1)), tonumber(value:sub(coma+1, #value))}
         elseif constant == "screenSize" then
             gameControl.grid =  Grid.LoadGrid(gameControl, tonumber(value))
         elseif constant == "props" then

@@ -1,6 +1,6 @@
 Pacman = { }
 
-Pacman.LoadPacman = function (grid, gameControl)
+Pacman.LoadPacman = function (grid, initDir, gameControl)
     local pacman = {
         grid = grid,
         gameControl = gameControl,
@@ -13,13 +13,10 @@ Pacman.LoadPacman = function (grid, gameControl)
         renderSprite = "fill",
         position = {grid.pacmanGridInfo.startPosition[1], grid.pacmanGridInfo.startPosition[2]},
         velocity = 8,
-        direction = {-1, 0},
-        nextDirection = {-1, 0},
-        facing = {-1, 0},
+        direction = initDir,
+        facing = initDir,
         dirAxis = 1,
         tile = {grid.pacmanGridInfo.startTile[1], grid.pacmanGridInfo.startTile[2]},
-        centerTile = {grid.pacmanGridInfo.startTile[1], grid.pacmanGridInfo.startTile[2]},
-        turnDistToCenter = -1,
 
         lockInput = false,
         isInDots = false,
@@ -135,7 +132,6 @@ Pacman.LoadPacman = function (grid, gameControl)
 
                 if self.tunnel ~= nil then
                     self.tile = {self.tunnel[1], self.tunnel[2]}
-                    self.centerTile = {self.tunnel[1] + self.direction[1], self.tunnel[2]}
                     local centerCoordinates = self.grid:getCenterCoordinates(self.tunnel[1], self.tunnel[2])
                     self.position = {centerCoordinates[1], centerCoordinates[2]}
                 end

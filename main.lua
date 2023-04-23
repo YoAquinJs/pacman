@@ -30,3 +30,10 @@ function engine.draw()
     GameControl:draw(Utils:getTime())
     --engine.graphics.print(tostring(engine.timer.getFPS()), 25, 25, 0, 2, 2)
 end
+
+function engine.quit()
+    if GameControl.tag ~= nil then
+        table.insert(GameControl.highscores, {GameControl.tag, GameControl.score})
+        GameControl:serializeScores()
+    end
+end

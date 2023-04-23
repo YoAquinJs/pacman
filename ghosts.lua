@@ -17,7 +17,7 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsI
         lastFrameTime = 0,
         nextFrameTime = 0.15,
         frame = 1,
-        renderSprite = "l1",
+        renderSprite = "r1",
         frightenedColor="B",
         renderType = name,
         velocity = 8,
@@ -86,7 +86,7 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsI
     }
 
     ghost.update = function (self, dt)
-        if self.stoped == true or self.gameControl.frameCount < 2 then
+        if self.stoped == true or self.gameControl.frameCount < 3 then
             return
         end
 
@@ -250,24 +250,22 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsI
             end
         end
 
-        if self.gameControl.frameCount < 2 then
-            self.renderSprite = "l1"
-        end
-
         local img = self.renderType.."/"..self.renderSprite
         Utils:draw(img, self.position[1]-self.grid.tilePX, self.position[2]-self.grid.tilePX, self.grid.tilePX*2/Utils:getImgSize(img))
     end
 
     ghost.lastFrameTime = Utils:getTime()
 
+    if ghost.direction[1] == 1 then ghost.renderSprite = "r1" end
     if ghost.direction[1] == -1 then ghost.renderSprite = "l1" end
     if ghost.direction[2] == 1 then ghost.renderSprite = "b1" end
     if ghost.direction[2] == -1 then ghost.renderSprite = "u1" end
+
     return ghost
 end
 
-Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman)
-    Blinky, Inky, Pinky, Clyde = Ghosts:Ghost(grid, grid.blinkyGridInfo, gameControl, pacman, "blinky", 0, {-1, 0}), Ghosts:Ghost(grid, grid.inkyGridInfo, gameControl, pacman, "inky", 14, {0,-1}),
+Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman, blinkyDir)
+    Blinky, Inky, Pinky, Clyde = Ghosts:Ghost(grid, grid.blinkyGridInfo, gameControl, pacman, "blinky", 0, blinkyDir), Ghosts:Ghost(grid, grid.inkyGridInfo, gameControl, pacman, "inky", 14, {0,-1}),
                                  Ghosts:Ghost(grid, grid.pinkyGridInfo, gameControl, pacman, "pinky", 1, {0,1}), Ghosts:Ghost(grid, grid.clydeGridInfo, gameControl, pacman, "clyde", 42, {0,-1})
 
     Blinky.getTarget = function (self)
