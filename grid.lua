@@ -63,7 +63,7 @@ Grid.LoadGrid = function (gameControl, tilePX)
                 self.gameControl:frightenedMode()
                 self.pills[tileX..":"..tileY] = nil
             else
-            self.gameControl:addScore(10)
+                self.gameControl:addScore(10)
                 self.biscuits[tileX..":"..tileY] = nil
             end
 

@@ -1,7 +1,7 @@
 startLifes:6
 propMaxTime:10
 maxVelocity:8
-eatenVelocity:12
+eatenVelocity:14
 maxHighscores:5
 screenSize:25
 defaultNametag:AAAAA

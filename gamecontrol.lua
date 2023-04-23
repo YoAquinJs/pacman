@@ -45,7 +45,7 @@ GameControl.LoadGameControl = function ()
         triggerProp = function (self)
             Utils:programAction(self.propMaxTime, function ()
                 self.prop = self.currentLevelInfo.data.BonusSymbol
-
+                print(self.currentLevelInfo.data.BonusSymbol)
                 Utils:programAction(self.propMaxTime, function ()
                     self.prop = 0
                     self:triggerProp()
@@ -130,7 +130,6 @@ GameControl.LoadGameControl = function ()
             self.score = self.score + add
 
             if self.reachHighscore == false and self.score > self.highscores[1][2] then
-                print(self.score)
                 self.reachHighscore = true
                 Utils:muteWhile("highscore", 1, 1)
             end
@@ -628,6 +627,7 @@ GameControl.LoadGameControl = function ()
             local i = 1
             for propScore in string.gmatch(value, "([^,]+)") do
                 gameControl.props[i][2] = tonumber(propScore)
+                i = i + 1
             end
         else
             if string.match(value, "%D") == nil then

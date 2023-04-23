@@ -16,11 +16,12 @@ Pacman.LoadPacman = function (grid, gameControl)
         direction = {-1, 0},
         nextDirection = {-1, 0},
         facing = {-1, 0},
-        directionAxis = 1,
+        dirAxis = 1,
         tile = {grid.pacmanGridInfo.startTile[1], grid.pacmanGridInfo.startTile[2]},
         centerTile = {grid.pacmanGridInfo.startTile[1], grid.pacmanGridInfo.startTile[2]},
         turnDistToCenter = -1,
 
+        lockInput = false,
         isInDots = false,
         tunnel = nil,
         stoped = false,
@@ -33,17 +34,20 @@ Pacman.LoadPacman = function (grid, gameControl)
             return
         end
 
-        if self.position[self.directionAxis] * self.direction[self.directionAxis] >
-        (self.grid:getCoordinates(self.tile[1] + self.direction[1], self.tile[2] + self.direction[2])[self.directionAxis] + ((self.grid.tilePX-1) * (1 - self.direction[self.directionAxis])/2)) * self.direction[self.directionAxis] then
-            self.tile[self.directionAxis] = self.tile[self.directionAxis] + self.direction[self.directionAxis]
+        if self.position[self.dirAxis] * self.direction[self.dirAxis] >
+        (self.grid:getCoordinates(self.tile[1] + self.direction[1], self.tile[2] + self.direction[2])[self.dirAxis] + ((self.grid.tilePX-1) * (1 - self.direction[self.dirAxis])/2)) * self.direction[self.dirAxis] then
+            self.tile[self.dirAxis] = self.tile[self.dirAxis] + self.direction[self.dirAxis]
+            self.passedCenter = false
 
             if self.tunnel ~= nil then
                 self.tunnel = nil
+                self.lockInput = false
             end
 
             if self.grid:getTileContent(self.tile[1], self.tile[2]).content == self.grid.TUNNEL then
-                local tunnelTile = self.grid:getTileContent(self.tile[1], self.tile[2])
-                self.tunnel = {tunnelTile.tunnelExit[1], tunnelTile.tunnelExit[2]}
+                local tunnelExit = self.grid:getTileContent(self.tile[1], self.tile[2]).tunnelExit
+                self.tunnel = {tunnelExit[1], tunnelExit[2]}
+                self.lockInput = true
             end
         end
 
@@ -59,95 +63,88 @@ Pacman.LoadPacman = function (grid, gameControl)
             end
         end
 
-        if self.tunnel == nil then
-            local tileCenterCoords, isIntersection = self.grid:getCenterCoordinates(self.tile[1], self.tile[2]), self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true
-            if Utils.input.up and self.grid:getTileContent(self.tile[1], self.tile[2] - 1).content ~= self.grid.WALL then
-                self.nextDirection = {0, -1}
-                if self.directionAxis == 2 then
-                    self.direction[2] = -1
-                elseif self.turnDistToCenter == -1 and isIntersection then
-                    self.turnDistToCenter = math.abs(tileCenterCoords[1]-self.position[1])
-                end
-            end
-            if Utils.input.down then
-                local nextTileContent = self.grid:getTileContent(self.tile[1], self.tile[2] + 1).content
-                if nextTileContent ~= self.grid.WALL and nextTileContent ~= self.grid.BLOCK then
-                    self.nextDirection = {0, 1}
-                    if self.directionAxis == 2 then
+        if self.lockInput == false then
+            local isIntersection, previousDir = self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true, {self.direction[1], self.direction[2]}
+
+            if self.dirAxis == 1 then--X axis current movement
+                if isIntersection == true then
+                    if Utils.input.up == true and (self.passedCenter == false or self.direction[1]==0) and self.grid:getTileContent(self.tile[1], self.tile[2]-1).content ~= self.grid.WALL then
+                        self.dirAxis = 2
+                        self.direction[2] = -1
+                        self.lockInput = true
+                        goto skipinput
+                    end
+                    if Utils.input.down == true and (self.passedCenter == false or self.direction[1]==0) and self.grid:getTileContent(self.tile[1], self.tile[2]+1).content ~= self.grid.WALL then
+                        self.dirAxis = 2
                         self.direction[2] = 1
-                    elseif self.turnDistToCenter == -1 and isIntersection then
-                        self.turnDistToCenter = math.abs(tileCenterCoords[1]-self.position[1])
+                        self.lockInput = true
+                        goto skipinput
                     end
                 end
-            end
-            if Utils.input.left and self.grid:getTileContent(self.tile[1] - 1, self.tile[2]).content ~= self.grid.WALL then
-                self.nextDirection = {-1, 0}
-                if self.directionAxis == 1 then
-                    self.direction[1] = -1
-                elseif self.turnDistToCenter == -1 and isIntersection then
-                    self.turnDistToCenter = math.abs(tileCenterCoords[2]-self.position[2])
+                if Utils.input.left == true and self.grid:getTileContent(self.tile[1]-1, self.tile[2]).content ~= self.grid.WALL then self.direction = {-1,0} end
+                if Utils.input.right == true and self.grid:getTileContent(self.tile[1]+1, self.tile[2]).content ~= self.grid.WALL then self.direction = {1,0} end
+            else--Y axis current movement
+                if isIntersection == true then
+                    if Utils.input.left == true and (self.passedCenter == false or self.direction[2]==0) and self.grid:getTileContent(self.tile[1]-1, self.tile[2]).content ~= self.grid.WALL then
+                        self.dirAxis = 1
+                        self.direction[1] = -1
+                        self.lockInput = true
+                        goto skipinput
+                    end
+                    if Utils.input.right == true and (self.passedCenter == false or self.direction[2]==0) and self.grid:getTileContent(self.tile[1]+1, self.tile[2]).content ~= self.grid.WALL then
+                        self.dirAxis = 1
+                        self.direction[1] = 1
+                        self.lockInput = true
+                        goto skipinput
+                    end
                 end
+                if Utils.input.up == true and self.grid:getTileContent(self.tile[1], self.tile[2]-1).content ~= self.grid.WALL then self.direction = {0,-1} end
+                if Utils.input.down == true and self.grid:getTileContent(self.tile[1], self.tile[2]+1).content ~= self.grid.WALL then self.direction = {0,1} end
             end
-            if Utils.input.right and self.grid:getTileContent(self.tile[1] + 1, self.tile[2]).content ~= self.grid.WALL then
-                self.nextDirection = {1, 0}
-                if self.directionAxis == 1 then
-                    self.direction[1] = 1
-                elseif self.turnDistToCenter == -1 and isIntersection then
-                    self.turnDistToCenter = math.abs(tileCenterCoords[2]-self.position[2])
-                end
-            end
-        end
 
-        if self.position[self.directionAxis] * self.direction[self.directionAxis] >=
-            self.grid:getCenterCoordinates(self.centerTile[1], self.centerTile[2])[self.directionAxis] * self.direction[self.directionAxis] then
-
-            if self.direction[1] ~= 0 or self.direction[2] ~= 0 then
-                self.centerTile[self.directionAxis] = self.centerTile[self.directionAxis] + self.direction[self.directionAxis]
-            end
-            local nextTileContent = self.grid:getTileContent(self.tile[1] + self.nextDirection[1], self.tile[2] + self.nextDirection[2]).content
-            if nextTileContent ~= self.grid.WALL and nextTileContent ~= self.grid.BLOCK then
-                self.direction = {self.nextDirection[1], self.nextDirection[2]}
+            if self.direction[1] ~= previousDir[1] or self.direction[2] ~= previousDir[2] then
                 self.facing = {self.direction[1], self.direction[2]}
-                self.directionAxis = math.abs(1 * self.direction[1]) + math.abs(2 * self.direction[2])
             end
 
-            nextTileContent = self.grid:getTileContent(self.tile[1] + self.direction[1], self.tile[2] + self.direction[2]).content
-            if nextTileContent == self.grid.WALL or nextTileContent == self.grid.BLOCK then
-                self.direction[self.directionAxis] = 0
-            end
+            ::skipinput::
+        elseif self.tunnel == nil then
+            local centerCoords, oppositeAxis = self.grid:getCenterCoordinates(self.tile[1], self.tile[2]), 1+tonumber(self.dirAxis==1 and 1 or 0)
 
-            local consumable = self.grid:getTileContent(self.tile[1], self.tile[2]).consumable
-            if consumable ~= nil then
-                self.grid:consume(consumable, self.tile[1], self.tile[2])
-            end
-
-            if self.tunnel ~= nil then
-                self.tile = {self.tunnel[1], self.tunnel[2]}
-                self.centerTile = {self.tunnel[1] + self.direction[1], self.tunnel[2]}
-                local centerCoordinates = self.grid:getCenterCoordinates(self.tunnel[1], self.tunnel[2])
-                self.position = {centerCoordinates[1], centerCoordinates[2]}
+            if self.position[oppositeAxis] * self.direction[oppositeAxis] >= centerCoords[oppositeAxis] * self.direction[oppositeAxis] then
+                self.position[oppositeAxis] = centerCoords[oppositeAxis]
+                self.lockInput = false
+                self.direction[oppositeAxis] = 0
             end
         end
 
-        local centerCoords, isIntersection = self.grid:getCenterCoordinates(self.tile[1], self.tile[2]), self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true
+        if self.passedCenter == false then
+            if self.position[self.dirAxis] * self.direction[self.dirAxis] >=
+            self.grid:getCenterCoordinates(self.tile[1], self.tile[2])[self.dirAxis] * self.direction[self.dirAxis] then
+                self.passedCenter = true
 
-        local cornerBoost = 1
-        if self.turnDistToCenter ~= -1 then
-            if math.abs(centerCoords[self.directionAxis] - self.position[self.directionAxis]) > self.turnDistToCenter or isIntersection == false then
-                self.turnDistToCenter = -1
-            else
-                cornerBoost = math.sqrt(2)
+                if self.lockInput == false then
+                    local nextTileContent = self.grid:getTileContent(self.tile[1]+self.direction[1], self.tile[2]+self.direction[2]).content
+                    if nextTileContent == self.grid.WALL or nextTileContent == self.grid.BLOCK then
+                        self.direction[self.dirAxis] = 0
+                    end
+                end
+                local consumable = self.grid:getTileContent(self.tile[1], self.tile[2]).consumable
+                if consumable ~= nil then
+                    self.grid:consume(consumable, self.tile[1], self.tile[2])
+                end
+
+                if self.tunnel ~= nil then
+                    self.tile = {self.tunnel[1], self.tunnel[2]}
+                    self.centerTile = {self.tunnel[1] + self.direction[1], self.tunnel[2]}
+                    local centerCoordinates = self.grid:getCenterCoordinates(self.tunnel[1], self.tunnel[2])
+                    self.position = {centerCoordinates[1], centerCoordinates[2]}
+                end
             end
         end
 
         if dt < .2 then
-            self.position[1] = self.position[1] + (self.direction[1] * (self.velocity*cornerBoost) * self.grid.tilePX * dt)
-            self.position[2] = self.position[2] + (self.direction[2] * (self.velocity*cornerBoost) * self.grid.tilePX * dt)
-            if self.direction[1] ~= 0 and self.position[2] ~= centerCoords[2] then
-                self.position[2] = centerCoords[2]
-            elseif self.direction[2] ~= 0 and self.position[1] ~= centerCoords[1] then
-                self.position[1] = centerCoords[1]
-            end
+            self.position[1] = self.position[1] + (self.direction[1] * self.velocity * self.grid.tilePX * dt)
+            self.position[2] = self.position[2] + (self.direction[2] * self.velocity * self.grid.tilePX * dt)
         end
     end
 
@@ -162,14 +159,18 @@ Pacman.LoadPacman = function (grid, gameControl)
                 if self.frame > 3 then self.frame = 1 end
             end
             if self.frame ~= 3 then
-                if self.direction[1] == -1 then
-                    self.renderSprite = "l"..tostring(self.frame)
-                elseif self.direction[1] == 1 then
-                    self.renderSprite = "r"..tostring(self.frame)
-                elseif self.direction[2] == -1 then
-                    self.renderSprite = "u"..tostring(self.frame)
-                elseif self.direction[2] == 1 then
-                    self.renderSprite = "d"..tostring(self.frame)
+                if self.dirAxis == 1 then
+                    if self.direction[1] == -1 then
+                        self.renderSprite = "l"..tostring(self.frame)
+                    elseif self.direction[1] == 1 then
+                        self.renderSprite = "r"..tostring(self.frame)
+                    end
+                else
+                    if self.direction[2] == -1 then
+                        self.renderSprite = "u"..tostring(self.frame)
+                    elseif self.direction[2] == 1 then
+                        self.renderSprite = "d"..tostring(self.frame)
+                    end
                 end
             elseif self.direction[1] ~= 0 or self.direction[2] ~= 0 then
                 self.renderSprite = "fill"
