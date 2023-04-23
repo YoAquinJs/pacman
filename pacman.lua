@@ -198,7 +198,7 @@ Pacman.LoadPacman = function (grid, gameControl)
             end
 
             local img = "pacman/"..self.renderSprite
-            Utils:draw(img, self.position[1]-self.grid.tilePX, self.position[2]-self.grid.tilePX, self.grid.tilePX*2/Utils:getImgSize(img), {1,1,1})
+            Utils:draw(img, self.position[1]-self.grid.tilePX, self.position[2]-self.grid.tilePX, self.grid.tilePX*2/Utils:getImgSize(img))
         end
     end
 

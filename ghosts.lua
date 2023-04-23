@@ -255,7 +255,7 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsI
         end
 
         local img = self.renderType.."/"..self.renderSprite
-        Utils:draw(img, self.position[1]-self.grid.tilePX, self.position[2]-self.grid.tilePX, self.grid.tilePX*2/Utils:getImgSize(img), {1,1,1})
+        Utils:draw(img, self.position[1]-self.grid.tilePX, self.position[2]-self.grid.tilePX, self.grid.tilePX*2/Utils:getImgSize(img))
     end
 
     ghost.lastFrameTime = Utils:getTime()

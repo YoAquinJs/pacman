@@ -25,17 +25,18 @@ Grid.LoadGrid = function (gameControl, tilePX)
         TUNNEL        = 5,
         WALKABLE      = 6,
         draw = function (self)
-            Utils:draw(self.mazeImg, self.mazeImgCoords[1], self.mazeImgCoords[2], self.tilePX/(Utils:getImgSize(self.mazeImg)/(#self.TILES-4)), self.mazeColor)
+            engine.graphics.setColor(self.mazeColor[1], self.mazeColor[2], self.mazeColor[3])
+            Utils:draw(self.mazeImg, self.mazeImgCoords[1], self.mazeImgCoords[2], self.tilePX/(Utils:getImgSize(self.mazeImg)/(#self.TILES-4)))
 
             local imgSize = Utils:getImgSize("props/dot")
             local scale = self.tilePX*2/imgSize
             engine.graphics.setColor(1,1,1)
 
             for _, coords in pairs(self.biscuits) do
-                engine.graphics.draw(Utils.images["props/dot"], coords[1], coords[2], 0, scale, scale)
+                Utils:draw("props/dot", coords[1], coords[2], scale)
             end
             for _, coords in pairs(self.pills) do
-                engine.graphics.draw(Utils.images["props/pill"], coords[1], coords[2], 0, scale, scale)
+                Utils:draw("props/pill", coords[1], coords[2], scale)
             end
         end,
         getTile = function (self, x, y)

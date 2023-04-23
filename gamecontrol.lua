@@ -31,6 +31,7 @@ GameControl.LoadGameControl = function ()
         reachHighscore = false,
         nameTagColor = {.2,.2,.6},
         nameTag={1, {65, 65, 65, 65, 65}, 0},
+        tag = "",
         drawables={},
         lifes=5,
         generalState=nil,
@@ -45,7 +46,6 @@ GameControl.LoadGameControl = function ()
         triggerProp = function (self)
             Utils:programAction(self.propMaxTime, function ()
                 self.prop = self.currentLevelInfo.data.BonusSymbol
-                print(self.currentLevelInfo.data.BonusSymbol)
                 Utils:programAction(self.propMaxTime, function ()
                     self.prop = 0
                     self:triggerProp()
@@ -325,7 +325,6 @@ GameControl.LoadGameControl = function ()
 
     gameControl.update = function (self, dt, time)
         if self.currentLevelInfo.level > 0 and self.grid.consumables > 0 then
-            -- Check for prop pick up
             if self.prop ~= 0 and math.abs(self.pacman.position[1] - self.grid.propSpawnCoords[1]) < 5 and math.abs(self.pacman.position[2] - self.grid.propSpawnCoords[2]) < 5 then
                 self:addScore(self.props[self.prop][2])
                 self.drawables["prop"] = {text=self.props[self.prop][2], coordinates={self.grid.propSpawnCoords[1], self.grid.propSpawnCoords[2] - (self.grid.tilePX/2)}, color={1,.706,1}, scale=2.2, isPopup=":"}
@@ -461,6 +460,7 @@ GameControl.LoadGameControl = function ()
                             return
                         end
                     end
+                    self.tag = self:getNameTag()
                     self:startLevel(1, false)
                 end
             end
@@ -474,10 +474,10 @@ GameControl.LoadGameControl = function ()
             if self.reachHighscore == true then printScore = self.score end
             Utils:drawText(printScore, engine.graphics.getWidth()/2, self.highScoreValueCoords[2], self.grid.tilePX*(2.6/16), {1,1,1}, true)
             Utils:drawText(tostring(self.score), self.scoreCounterCoords[1]-(self.grid.tilePX*(#tostring(self.score))), self.scoreCounterCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
-            Utils:drawText(self:getNameTag(), self.nameTagCoords[1], self.nameTagCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
+            Utils:drawText(self.tag, self.nameTagCoords[1], self.nameTagCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
             for i = 0, self.lifes-2 do
                 local img, scale = "pacman/r2", self.grid.tilePX*(1.8/16)
-                Utils:draw(img, self.lifesCounterCoords[1]+(i*self.grid.tilePX*2)-(self.grid.tilePX), self.lifesCounterCoords[2]-(self.grid.tilePX), scale, {1,1,1})
+                Utils:draw(img, self.lifesCounterCoords[1]+(i*self.grid.tilePX*2)-(self.grid.tilePX), self.lifesCounterCoords[2]-(self.grid.tilePX), scale)
             end
 
             for i=1, 8 do
@@ -492,12 +492,12 @@ GameControl.LoadGameControl = function ()
                 end
 
                 local img = "props/"..sprite
-                Utils:draw(img, self.levelCounterCoords[1]-((i-1)*self.grid.tilePX*2)-(self.grid.tilePX), self.levelCounterCoords[2]-(self.grid.tilePX), scale, {1,1,1})
+                Utils:draw(img, self.levelCounterCoords[1]-((i-1)*self.grid.tilePX*2)-(self.grid.tilePX), self.levelCounterCoords[2]-(self.grid.tilePX), scale)
             end::exit::
 
             if self.prop ~= 0 then
                 local img, scale, imgSize = "props/"..self.props[self.prop][1], self.grid.tilePX*(2/16), Utils:getImgSize("props/"..self.props[self.prop][1])
-                Utils:draw(img, self.grid.propSpawnCoords[1] - (imgSize*scale/2), self.grid.propSpawnCoords[2] - (imgSize*scale/2), scale, {1,1,1})
+                Utils:draw(img, self.grid.propSpawnCoords[1] - (imgSize*scale/2), self.grid.propSpawnCoords[2] - (imgSize*scale/2), scale)
             end
 
             self.grid:draw()
@@ -508,7 +508,7 @@ GameControl.LoadGameControl = function ()
             self.ghosts.pinky:draw(time)
         elseif self.currentLevelInfo.level< 0 then
             local img, scale, imgSize = "title", self.grid.tilePX*(2.2/16), Utils:getImgSize("title")
-            Utils:draw(img, (engine.graphics.getWidth() - (imgSize*scale))/2,  40*(self.grid.tilePX/16), scale, {1,1,1})
+            Utils:draw(img, (engine.graphics.getWidth() - (imgSize*scale))/2,  40*(self.grid.tilePX/16), scale)
 
             Utils:drawText("PLAYER", engine.graphics.getWidth()/2, 160*(self.grid.tilePX/16), self.grid.tilePX*(6/16), {1,1,0}, true)
             for i, char in ipairs(self.nameTag[2]) do

@@ -44,8 +44,9 @@ Utils.programAction = function (self, time, action, key)
 end
 
 Utils.update = function (self)
+    local time = self:getTime()
     for key, programmedAction in pairs(self.programmedActions) do
-        if programmedAction.triggerTime - self:getTime() <= 0  then
+        if programmedAction.triggerTime - time <= 0  then
             programmedAction.action()
             self.programmedActions[key] = nil
         end
@@ -123,8 +124,7 @@ Utils.getImgSize = function (self, img)
     return width
 end
 
-Utils.draw = function (self, img, x, y, scale, color)
-    engine.graphics.setColor(color[1],color[2],color[3])
+Utils.draw = function (self, img, x, y, scale)
     engine.graphics.draw(self.images[img], x, y, 0, scale, scale)
 end
 
@@ -142,6 +142,7 @@ Utils.drawText = function (self, text, x, y, scale, color, centerd, shadowColor)
         end
     end
 
+    engine.graphics.setColor(color[1],color[2],color[3])
     for i = 1, #text do
         local char = text:sub(i,i)
 
@@ -159,13 +160,15 @@ Utils.drawText = function (self, text, x, y, scale, color, centerd, shadowColor)
         end
 
         if shadowColor ~= nil then
-            self:draw(charImg, x+(charSize*(i-1)*scale) - (.36*scale), y - (.6*scale), scale*1.15, {shadowColor[1],shadowColor[2],shadowColor[3]})
+            engine.graphics.setColor(shadowColor[1],shadowColor[2],shadowColor[3])
+            self:draw(charImg, x+(charSize*(i-1)*scale) - (.36*scale), y - (.6*scale), scale*1.1)
+            engine.graphics.setColor(color[1],color[2],color[3])
         end
 
         if isPropup == true then
-            self:draw(charImg, x+(charSize*(i-2)*scale), y, scale, {color[1],color[2],color[3]})
+            self:draw(charImg, x+(charSize*(i-2)*scale), y, scale)
         else
-            self:draw(charImg, x+(charSize*(i-1)*scale), y, scale, {color[1],color[2],color[3]})
+            self:draw(charImg, x+(charSize*(i-1)*scale), y, scale)
         end
 
         ::continue::
