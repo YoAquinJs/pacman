@@ -479,7 +479,9 @@ GameControl.LoadGameControl = function ()
             if self.reachHighscore == true then printScore = self.score end
             Utils:drawText(printScore, engine.graphics.getWidth()/2, self.highScoreValueCoords[2], self.grid.tilePX*(2.6/16), {1,1,1}, true)
             Utils:drawText(tostring(self.score), self.scoreCounterCoords[1]-(self.grid.tilePX*(#tostring(self.score))), self.scoreCounterCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
-            Utils:drawText(self.tag, self.nameTagCoords[1], self.nameTagCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
+            if self.tag ~= nil then
+                Utils:drawText(self.tag, self.nameTagCoords[1], self.nameTagCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
+            end
             for i = 0, self.lifes-2 do
                 local img, scale = "pacman/r2", self.grid.tilePX*(1.8/16)
                 Utils:draw(img, self.lifesCounterCoords[1]+(i*self.grid.tilePX*2)-(self.grid.tilePX), self.lifesCounterCoords[2]-(self.grid.tilePX), scale)
