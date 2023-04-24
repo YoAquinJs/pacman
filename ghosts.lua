@@ -157,9 +157,9 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsI
                             end
 
                             if anyEaten == false then
-                                Utils:audio("eaten", false)
-                                Utils:audio("siren", not self.gameControl.isFrightened, true, 1, self.gameControl.sirenPitch)
-                                Utils:audio("frigthtened", self.gameControl.isFrightened, true)
+                                --Utils:audio("eaten", false)
+                                --Utils:audio("siren", not self.gameControl.isFrightened, true, 1, self.gameControl.sirenPitch)
+                                --Utils:audio("frigthtened", self.gameControl.isFrightened, true)
                             end
                         end
                     elseif self.position[2] <= self.grid.spawnYEntrance then

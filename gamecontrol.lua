@@ -189,11 +189,11 @@ GameControl.LoadGameControl = function ()
                     end
                 end
 
-                if anyEaten == false then Utils:audio("siren", true, true, 1, self.sirenPitch) end
+                --if anyEaten == false then Utils:audio("siren", true, true, 1, self.sirenPitch) end
 
                 self.isFrightened = false
                 self.pacman.ghostsEatened = 0
-                Utils:audio("frigthtened", false)
+                --Utils:audio("frigthtened", false)
                 self:triggerPhaseChange(self.currentLevelInfo.timeLeftForShift)
             end, "frigthtened")
             Utils:programAction(self.currentLevelInfo.data.FrightTime-2, function ()
@@ -202,12 +202,12 @@ GameControl.LoadGameControl = function ()
                 self:ghostFrightColorFlash(colorTimeSpan, flashes, 1, true)
             end, "frigthtenedFlashW")
 
-            if Utils.audios["eaten"]:isPlaying() == true then return end
+            --if Utils.audios["eaten"]:isPlaying() == true then return end
 
-            Utils.audios["siren"]:stop()
-            Utils:programAction(Utils:audio("frigthtenedstart", true), function ()
-                Utils:audio("frigthtened", true, true)
-            end)
+            --Utils.audios["siren"]:stop()
+            --Utils:programAction(Utils:audio("frigthtenedstart", true), function ()
+            --    Utils:audio("frigthtened", true, true)
+            --end)
         end,
         serializeScores = function (self)
             local formattedValues = ""
@@ -284,7 +284,7 @@ GameControl.LoadGameControl = function ()
                 Utils.audios["frigthtened"]:stop()
                 Utils:sleep(Utils:muteWhile("eatghost", 1, 1, -1))
 
-                Utils:audio("eaten", true, true)
+                --Utils:audio("eaten", true, true)
                 for key, _ in pairs(self.ghosts) do
                     self.ghosts[key].stoped = false
                 end
@@ -390,11 +390,11 @@ GameControl.LoadGameControl = function ()
             end
 
             if self.pacman.dying == false and self.grid.consumables > 0 and self.frameCount > 2 then
-                if Utils.audios["eatdot"]:isPlaying() == true and self.pacman.isInDots == false then
-                    Utils:audio("eatdot", true, false, .55)
-                elseif self.pacman.isInDots == true then
-                    Utils:audio("eatdot", true, true, .55)
-                end
+                --if Utils.audios["eatdot"]:isPlaying() == true and self.pacman.isInDots == false then
+                --    Utils:audio("eatdot", true, false, .55)
+                --elseif self.pacman.isInDots == true then
+                --    Utils:audio("eatdot", true, true, .55)
+                --end
             end
 
             self.pacman:update(dt)
@@ -409,9 +409,9 @@ GameControl.LoadGameControl = function ()
                     sleepTime = sleepTime/4
                 end
                 Utils:sleep(sleepTime)
-                Utils:programAction(-1, function ()
-                    Utils:audio("siren", true, true, 1, self.sirenPitch)
-                end)
+                --Utils:programAction(-1, function ()
+                --    Utils:audio("siren", true, true, 1, self.sirenPitch)
+                --end)
             end
             self.frameCount = self.frameCount + 1
         elseif self.currentLevelInfo.level== 0 then
