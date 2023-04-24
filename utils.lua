@@ -174,9 +174,7 @@ Utils.drawText = function (self, text, x, y, scale, color, centerd, shadowColor)
 end
 
 Utils.start = function (self)
-    local assetsConfigFile = assert(io.open("./datafiles/assetsdata", "r"))
-
-    for assetInfo in assetsConfigFile:lines() do
+    for assetInfo in Utils.lines(assetsdata) do
         local path, key = string.match(assetInfo, "^(.-)~"), string.match(assetInfo, "~(.+)$")
         local extension = string.match(path, "%.([^%.]*)$")
 
@@ -189,8 +187,10 @@ Utils.start = function (self)
             print("Non managed asset extension being imported: ", assetInfo)
         end
     end
+end
 
-    io.close(assetsConfigFile)
+Utils.lines = function (string)
+    return string:gmatch("[^\r\n]+")
 end
 
 return Utils

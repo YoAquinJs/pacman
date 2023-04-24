@@ -563,11 +563,9 @@ GameControl.LoadGameControl = function ()
     gameControl:serializeScores()
 
     -- File for level data
-    local levelDataFile = assert(io.open("./datafiles/leveldata", "r"))
-
     local i, j, levelData, levelDataKeys = 1, 1, true, gameControl.levels.levelData
     gameControl.levels.levelData = {}
-    for levelDataString in levelDataFile:lines() do
+    for levelDataString in Utils.lines(leveldata) do
         j = 1
 
         if #levelDataString < 2 then
@@ -601,13 +599,9 @@ GameControl.LoadGameControl = function ()
         end
     end
 
-    io.close(levelDataFile)
-
     --File for general data
-    local gameDataFile = assert(io.open("./datafiles/gamedata", "r"))
-
     local constant, value = 1, 1
-    for gameDataString in gameDataFile:lines() do
+    for gameDataString in Utils.lines(gamedata) do
         j = string.find(gameDataString, ":")
         constant, value = gameDataString:sub(1, j-1), gameDataString:sub(j+1, #gameDataString)
 
@@ -644,8 +638,6 @@ GameControl.LoadGameControl = function ()
         end
     end
     if gameControl.startLifes > 6 then gameControl.startLifes = 6 end
-
-    io.close(gameDataFile)
 
     return gameControl
 end

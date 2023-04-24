@@ -76,12 +76,9 @@ Grid.LoadGrid = function (gameControl, tilePX)
         end,
         reloadConsumeables = function (self)
             self.consumables = 0
-            local mapFile = assert(io.open("./datafiles/mapdata", "r"))
-
-            local mapStr = mapFile:read("a")
             local x, y = 1, 1
-            for i = 1, #mapStr do
-                local c = mapStr:sub(i,i)
+            for i = 1, #mapdata do
+                local c = mapdata:sub(i,i)
 
                 if c == "\n" then
                     x = 1
@@ -105,17 +102,12 @@ Grid.LoadGrid = function (gameControl, tilePX)
                     x = x + 1
                 end
             end
-
-            io.close(mapFile)
         end,
     }
 
-    local mapFile = assert(io.open("./datafiles/mapdata", "r"))
-
-    local mapStr = mapFile:read("a")
     local x, y = 1, 1
-    for i = 1, #mapStr do
-        local c = mapStr:sub(i,i)
+    for i = 1, #mapdata do
+        local c = mapdata:sub(i,i)
 
         if c == "\n" then
             x = 1
@@ -256,8 +248,6 @@ Grid.LoadGrid = function (gameControl, tilePX)
             end
         end
     end
-
-    io.close(mapFile)
 
     grid.TILES[grid.tunnels[1][1]][grid.tunnels[1][2]].tunnelExit = {grid.tunnels[2][1], grid.tunnels[2][2]}
     grid.TILES[grid.tunnels[2][1]][grid.tunnels[2][2]].tunnelExit = {grid.tunnels[1][1], grid.tunnels[1][2]}
