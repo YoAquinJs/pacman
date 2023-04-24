@@ -105,7 +105,7 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsI
 
         end
 
-        if math.sqrt(math.pow(self.pacman.position[1] - self.position[1], 2) + math.pow(self.pacman.position[2] - self.position[2], 2)) < self.grid.tilePX/2 and self.state ~= Self.states.FRIGHTENED and self.state ~= Self.states.EATEN then
+        if math.sqrt(math.pow(self.pacman.position[1] - self.position[1], 2) + math.pow(self.pacman.position[2] - self.position[2], 2)) < self.grid.tilePX/1.5 and self.state ~= Self.states.FRIGHTENED and self.state ~= Self.states.EATEN then
             self.gameControl:eatPacman()
         end
 
