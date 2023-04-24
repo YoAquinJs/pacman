@@ -1,13 +1,7 @@
-# Web Version
+# Web Deployment
 
-This is a modified version of the game for running in the web using [Davidobot love.js](https://github.com/Davidobot/love.js)
+Web deployment of the game using [Davidobot love.js](https://github.com/Davidobot/love.js)
 
-## Build
+## Play
 
-Install [Davidobot love.js](https://github.com/Davidobot/love.js)
-
-### Windows
-```
-./build.ps1
-npx love.js.cmd -c pacman.love Build
-```
+[Classic Pacman](https://yoaquinjs.github.io/pacman/)
