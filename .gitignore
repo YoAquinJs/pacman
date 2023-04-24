@@ -1,3 +1,15 @@
 .vscode
 pacman.love
 datafiles
+assets
+map
+build.ps1
+build.sh
+conf.lua
+gamecontrol.lua
+ghosts.lua
+grid.lua
+main.lua
+pacman.lua
+README.md
+utils.lua
