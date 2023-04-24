@@ -101,7 +101,7 @@ Pacman.LoadPacman = function (grid, initDir, gameControl)
         elseif self.tunnel == nil then
             local centerCoords, oppositeAxis = self.grid:getCenterCoordinates(self.tile[1], self.tile[2]), 1+tonumber(self.dirAxis==1 and 1 or 0)
 
-            if self.position[oppositeAxis] * self.direction[oppositeAxis] >= centerCoords[oppositeAxis] * self.direction[oppositeAxis] then
+            if (self.position[oppositeAxis] + (self.direction[oppositeAxis]*self.velocity*self.grid.tilePX*dt)) * self.direction[oppositeAxis] >= centerCoords[oppositeAxis] * self.direction[oppositeAxis] then
                 self.position[oppositeAxis] = centerCoords[oppositeAxis]
                 self.lockInput = false
                 self.direction[oppositeAxis] = 0
