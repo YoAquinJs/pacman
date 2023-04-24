@@ -134,7 +134,7 @@ GameControl.LoadGameControl = function ()
         addScore = function (self, add)
             self.score = self.score + add
 
-            if self.reachHighscore == false and self.score > self.highscores[1][2] then
+            if self.reachHighscore == false and Utils.mute == false and self.score > self.highscores[1][2] then
                 self.reachHighscore = true
                 Utils:muteWhile("highscore", 1, 1)
             end
