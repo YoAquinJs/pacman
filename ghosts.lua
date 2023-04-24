@@ -109,7 +109,6 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsI
             self.gameControl:eatPacman()
         end
 
-        ::enterspawn::
         if self.inSpawn == true then
             if self.bumps < self.bumpsInSpawn then
                 if self.direction[2] == -1 and self.grid.spawnYRange[1] >= self.position[2] then
@@ -154,7 +153,6 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsI
                             for key, _ in pairs(self.gameControl.ghosts) do
                                 if self.gameControl.ghosts[key].state == Self.states.EATEN then
                                     anyEaten = true
-                                    break
                                 end
                             end
 
@@ -177,7 +175,6 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsI
                 if self.state == Self.states.EATEN and self.tile[2] == self.grid.eatenTargetTile[2] and (self.tile[1] == self.grid.eatenTargetTile[1] or self.tile[1] == self.grid.eatenTargetTile[1+1]) then
                     self.spawnDir = -1
                     self.inSpawn = true
-                    goto enterspawn
                 end
                 if self.grid:getTileContent(self.tile[1], self.tile[2]).isIntersection == true then
                     self:getDirection()

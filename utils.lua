@@ -146,32 +146,30 @@ Utils.drawText = function (self, text, x, y, scale, color, centerd, shadowColor)
     for i = 1, #text do
         local char = text:sub(i,i)
 
-        if char == " " or char == ":" then
-            goto continue
-        elseif char == "/" then
-            char = "slash"
-        elseif char == "0" and text:sub(i-1,i-1) == "0"  then
-            zeroCount = zeroCount + 1
-        end
+        if char ~= " " and char ~= ":" then
+            if char == "/" then
+                char = "slash"
+            elseif char == "0" and text:sub(i-1,i-1) == "0"  then
+                zeroCount = zeroCount + 1
+            end
 
-        local charImg = "font/"..char
-        if isPropup == true then
-            charImg = "popupfont/"..char
-        end
+            local charImg = "font/"..char
+            if isPropup == true then
+                charImg = "popupfont/"..char
+            end
 
-        if shadowColor ~= nil then
-            engine.graphics.setColor(shadowColor[1],shadowColor[2],shadowColor[3])
-            self:draw(charImg, x+(charSize*(i-1)*scale) - (.36*scale), y - (.6*scale), scale*1.1)
-            engine.graphics.setColor(color[1],color[2],color[3])
-        end
+            if shadowColor ~= nil then
+                engine.graphics.setColor(shadowColor[1],shadowColor[2],shadowColor[3])
+                self:draw(charImg, x+(charSize*(i-1)*scale) - (.36*scale), y - (.6*scale), scale*1.1)
+                engine.graphics.setColor(color[1],color[2],color[3])
+            end
 
-        if isPropup == true then
-            self:draw(charImg, x+(charSize*(i-2)*scale), y, scale)
-        else
-            self:draw(charImg, x+(charSize*(i-1)*scale), y, scale)
+            if isPropup == true then
+                self:draw(charImg, x+(charSize*(i-2)*scale), y, scale)
+            else
+                self:draw(charImg, x+(charSize*(i-1)*scale), y, scale)
+            end
         end
-
-        ::continue::
     end
 end
 

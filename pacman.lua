@@ -69,13 +69,11 @@ Pacman.LoadPacman = function (grid, initDir, gameControl)
                         self.dirAxis = 2
                         self.direction[2] = -1
                         self.lockInput = true
-                        goto skipinput
                     end
                     if Utils.input.down == true and (self.passedCenter == false or self.direction[1]==0) and self.grid:getTileContent(self.tile[1], self.tile[2]+1).content ~= self.grid.WALL then
                         self.dirAxis = 2
                         self.direction[2] = 1
                         self.lockInput = true
-                        goto skipinput
                     end
                 end
                 if Utils.input.left == true and self.grid:getTileContent(self.tile[1]-1, self.tile[2]).content ~= self.grid.WALL then self.direction = {-1,0} end
@@ -86,13 +84,11 @@ Pacman.LoadPacman = function (grid, initDir, gameControl)
                         self.dirAxis = 1
                         self.direction[1] = -1
                         self.lockInput = true
-                        goto skipinput
                     end
                     if Utils.input.right == true and (self.passedCenter == false or self.direction[2]==0) and self.grid:getTileContent(self.tile[1]+1, self.tile[2]).content ~= self.grid.WALL then
                         self.dirAxis = 1
                         self.direction[1] = 1
                         self.lockInput = true
-                        goto skipinput
                     end
                 end
                 if Utils.input.up == true and self.grid:getTileContent(self.tile[1], self.tile[2]-1).content ~= self.grid.WALL then self.direction = {0,-1} end
@@ -102,8 +98,6 @@ Pacman.LoadPacman = function (grid, initDir, gameControl)
             if self.direction[1] ~= previousDir[1] or self.direction[2] ~= previousDir[2] then
                 self.facing = {self.direction[1], self.direction[2]}
             end
-
-            ::skipinput::
         elseif self.tunnel == nil then
             local centerCoords, oppositeAxis = self.grid:getCenterCoordinates(self.tile[1], self.tile[2]), 1+tonumber(self.dirAxis==1 and 1 or 0)
 

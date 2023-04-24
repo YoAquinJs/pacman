@@ -13,6 +13,7 @@ function engine.load()
     engine.window.setMode(#GameControl.grid.TILES*GameControl.grid.tilePX - (GameControl.grid.tilePX*4),
     #GameControl.grid.TILES[1]*GameControl.grid.tilePX - GameControl.grid.tilePX, {display = 2, fullscreen=false, centered=true})
 
+    print(love.system.getOS())
     Utils.sleeptTime = engine.timer.getTime()
 end
 

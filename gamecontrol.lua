@@ -88,12 +88,15 @@ GameControl.LoadGameControl = function ()
                 self.grid:reloadConsumeables()
             end
 
-            for i=1,#self.levels.modeShifts do
-                if level < self.levels.modeShifts[i].untilLevel+1 or self.levels.modeShifts[i].untilLevel==-1 then
-                    self.currentLevelInfo.shifts = self.levels.modeShifts[i].phases
-                    goto selectedModeShift
-                end
-            end ::selectedModeShift::
+            local i = 1
+            self.currentLevelInfo.shifts = nil
+            while level < self.levels.modeShifts[i].untilLevel+1 do
+                self.currentLevelInfo.shifts = self.levels.modeShifts[i].phases
+                i = i + 1
+            end
+            if self.currentLevelInfo.shifts == nil then
+                self.currentLevelInfo.shifts = self.levels.modeShifts[#self.levels.modeShifts].phases
+            end
 
             if level> self.currentLevelInfo.level then
                 self.grid:reloadConsumeables()
@@ -213,11 +216,10 @@ GameControl.LoadGameControl = function ()
             for i, value in ipairs(self.highscores) do
                 if i > self.maxHighscores then
                     table.remove(self.highscores, i)
-                    goto exitHighscoreSelector
+                else
+                    formattedValues = formattedValues..value[1]..", "..value[2].."\n"
                 end
-
-                formattedValues = formattedValues..value[1]..", "..value[2].."\n"
-            end::exitHighscoreSelector::
+            end
 
             engine.filesystem.write(self.savingsFile, formattedValues:sub(1, #formattedValues - 1))
         end,
@@ -483,8 +485,9 @@ GameControl.LoadGameControl = function ()
                 Utils:draw(img, self.lifesCounterCoords[1]+(i*self.grid.tilePX*2)-(self.grid.tilePX), self.lifesCounterCoords[2]-(self.grid.tilePX), scale)
             end
 
-            for i=1, 8 do
-                if self.currentLevelInfo.level< i then goto exit end
+            local lifes = self.currentLevelInfo.level-1
+            if lifes > 8 then lifes = 8 end
+            for i=1, lifes do
                 local scale, sprite = self.grid.tilePX*(1.8/16), self.props[i][1]
 
                 if self.currentLevelInfo.level> 8 then
@@ -496,7 +499,7 @@ GameControl.LoadGameControl = function ()
 
                 local img = "props/"..sprite
                 Utils:draw(img, self.levelCounterCoords[1]-((i-1)*self.grid.tilePX*2)-(self.grid.tilePX), self.levelCounterCoords[2]-(self.grid.tilePX), scale)
-            end::exit::
+            end
 
             if self.prop ~= 0 then
                 local img, scale, imgSize = "props/"..self.props[self.prop][1], self.grid.tilePX*(2/16), Utils:getImgSize("props/"..self.props[self.prop][1])
