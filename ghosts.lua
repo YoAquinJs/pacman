@@ -261,9 +261,13 @@ function Ghosts.Ghost (Self, grid, ghostStart, gameControl, pacman, name, bumpsI
     return ghost
 end
 
-Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman, blinkyDir)
-    Blinky, Inky, Pinky, Clyde = Ghosts:Ghost(grid, grid.blinkyGridInfo, gameControl, pacman, "blinky", 0, blinkyDir), Ghosts:Ghost(grid, grid.inkyGridInfo, gameControl, pacman, "inky", 14, {0,-1}),
-                                 Ghosts:Ghost(grid, grid.pinkyGridInfo, gameControl, pacman, "pinky", 1, {0,1}), Ghosts:Ghost(grid, grid.clydeGridInfo, gameControl, pacman, "clyde", 42, {0,-1})
+Ghosts.LoadGhosts = function (Self, grid, gameControl, pacman, blinkyDir, firstRun)
+    Blinky, Inky, Pinky, Clyde = Ghosts:Ghost(grid, grid.blinkyGridInfo, gameControl, pacman, "blinky", 0, blinkyDir), nil, Ghosts:Ghost(grid, grid.pinkyGridInfo, gameControl, pacman, "pinky", 1, {0,1}), nil
+    if firstRun == true then
+        Inky, Clyde = Ghosts:Ghost(grid, grid.inkyGridInfo, gameControl, pacman, "inky", 14, {0,-1}), Ghosts:Ghost(grid, grid.clydeGridInfo, gameControl, pacman, "clyde", 42, {0,-1})
+    else
+        Inky, Clyde = Ghosts:Ghost(grid, grid.inkyGridInfo, gameControl, pacman, "inky", 4, {0,-1}), Ghosts:Ghost(grid, grid.clydeGridInfo, gameControl, pacman, "clyde", 12, {0,-1})
+    end
 
     Blinky.getTarget = function (self)
         if self.state == Self.states.SCATTER then

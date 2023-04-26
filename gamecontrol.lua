@@ -111,7 +111,7 @@ GameControl.LoadGameControl = function ()
             end
 
             self.pacman = Pacman.LoadPacman(self.grid, {self.pacmanDir[1], self.pacmanDir[2]}, self)
-            local GhostsObjs = Ghosts:LoadGhosts(self.grid, self, self.pacman, {self.blinkyDir[1], self.blinkyDir[2]})
+            local GhostsObjs = Ghosts:LoadGhosts(self.grid, self, self.pacman, {self.blinkyDir[1], self.blinkyDir[2]}, level == 1 and died == false)
             self.ghosts = GhostsObjs
             self.states = Ghosts.states
             self.pacman.ghosts = GhostsObjs
@@ -258,7 +258,7 @@ GameControl.LoadGameControl = function ()
                     self.currentLevelInfo.level= 0
                     Utils:programAction(1.5, function ()
                         self.drawables["pressanykey"] = {text="PRESS ANY KEY TO CONTINUE", coordinates={engine.graphics.getWidth()/2, self.pressAnyKeyLabel[2]}, color={1,1,1}, scale=2, isPopup=""}
-                    end)
+                    end, "pressanykeyTrigger")
                 end)
                 table.insert(self.highscores, {self.tag, self.score})
                 self:serializeScores()
@@ -419,6 +419,7 @@ GameControl.LoadGameControl = function ()
                 self.currentLevelInfo.level= -1
                 self.drawables["gameover"] = nil
                 self.drawables["pressanykey"] = nil
+                Utils:cancelAction("pressanykeyTrigger")
 
                 self.nameTagColor = {.2,.2,.6}
                 for i=1, #self.highscores do
