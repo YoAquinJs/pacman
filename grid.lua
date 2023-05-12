@@ -16,6 +16,7 @@ Grid.LoadGrid = function (gameControl, tilePX)
         pinkyGridInfo = {},
         clydeGridInfo = {},
         mazeColor = {1,1,1},
+        getCoordOffset = {3, 2},
         mazeImgCoords = nil,
         EMPTY         = 0,
         WALL          = 1,
@@ -43,7 +44,7 @@ Grid.LoadGrid = function (gameControl, tilePX)
             return {math.ceil(x/self.tilePX), math.ceil(y/self.tilePX)}
         end,
         getCoordinates = function (self, tileX, tileY)
-            return {(tileX * self.tilePX) - (self.tilePX*3), (tileY * self.tilePX) - (self.tilePX*2)}
+            return {(tileX * self.tilePX) - (self.tilePX*self.getCoordOffset[1]), (tileY * self.tilePX) - (self.tilePX*self.getCoordOffset[2])}
         end,
         getTileContent = function (self, tileX, tileY)
             if self.TILES[tileX] == nil or self.TILES[tileX][tileY] == nil then
@@ -111,8 +112,27 @@ Grid.LoadGrid = function (gameControl, tilePX)
     }
 
     local mapFile = assert(io.open("./datafiles/mapdata", "r"))
-
     local mapStr = mapFile:read("a")
+
+    if gameControl.isFullscreen == true then
+        local width, height = engine.window.getDesktopDimensions(2)
+        grid.getCoordOffset = {1,1}
+        local gridHeight = 0        
+        for _ in io.lines("./datafiles/mapdata") do
+            gridHeight = gridHeight + 1
+        end
+        grid.tilePX = height / gridHeight
+
+        for i = 1, #mapStr do
+            if mapStr:sub(i+1,i+1) == "\n" then
+                if Utils.gridXOffset == nil then
+                    Utils.gridXOffset = (width - (grid.tilePX*i))/2
+                    break
+                end
+            end
+        end
+    end
+    
     local x, y = 1, 1
     for i = 1, #mapStr do
         local c = mapStr:sub(i,i)
@@ -262,6 +282,7 @@ Grid.LoadGrid = function (gameControl, tilePX)
     grid.TILES[grid.tunnels[1][1]][grid.tunnels[1][2]].tunnelExit = {grid.tunnels[2][1], grid.tunnels[2][2]}
     grid.TILES[grid.tunnels[2][1]][grid.tunnels[2][2]].tunnelExit = {grid.tunnels[1][1], grid.tunnels[1][2]}
 
+    Utils.screenMiddle = ((grid.tilePX*#grid.TILES)/2)
     return grid
 end
 

@@ -39,3 +39,4 @@ done < <(find "$sourceDir" -type f -print0)
 
 zip -r "$destinationZip" "${filesToArchive[@]/$sourceDir\//}"
 
+love pacman.love

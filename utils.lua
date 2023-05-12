@@ -3,6 +3,7 @@ Utils = {
     sleeptTime = 0,
     programmedActions = {},
     mute = false,
+    gridXOffset = nil,
     images = {},
     audios = {},
     input = {
@@ -125,7 +126,7 @@ Utils.getImgSize = function (self, img)
 end
 
 Utils.draw = function (self, img, x, y, scale)
-    engine.graphics.draw(self.images[img], x, y, 0, scale, scale)
+    engine.graphics.draw(self.images[img], x + self.gridXOffset, y, 0, scale, scale)
 end
 
 Utils.drawText = function (self, text, x, y, scale, color, centerd, shadowColor)
