@@ -54,6 +54,18 @@ chmod +x build.sh
 
 </div>
 
+## GPIO Input 
+
+The game can be played via the raspberry GPIO pins, if you want to use this feature YOU MUST FOLLOW THESE GUIDELINES for connecting the electric components to the pins, it's not assured that any other configuration would work.
+
+### Components
+
+* Joystick
+* 4 Analog buttons
+* Cables
+* Soldering iron and metal for soldering (Optional)
+* Raspberry Pi 4 Model B (not tested in different versions of the raspberry)
+
 ## Usage
 
 To play the game, use the arrow keys on your keyboard to move the Pacman character. The objective of the game is to eat all the food on the map without getting caught by the ghosts. If you run into a ghost, you will lose a life. You can eat power pellets to temporarily make the ghosts vulnerable and eat them. The game ends when you lose all your lives. The game keeps a local highscores file, only saving the top 5 scores.
