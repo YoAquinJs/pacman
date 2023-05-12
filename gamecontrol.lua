@@ -374,8 +374,9 @@ GameControl.LoadGameControl = function ()
                 end
             end
 
-            if self.grid.consumables <= self.currentLevelInfo.data.Elroy1Dots then
+            if self.grid.consumables <= self.currentLevelInfo.data.Elroy1Dots and self.ghosts.blinky.state ~= self.states.FRIGHTENED and self.ghosts.blinky.state ~= self.states.EATEN then
                 self.ghosts.blinky.velocity = self.maxVelocity*self.currentLevelInfo.data.Elroy1Speed
+
                 self.sirenPitch = 1.2
                 Utils.audios["siren"]:setPitch(1.2)
                 if self.grid.consumables <= self.currentLevelInfo.data.Elroy2Dots then
