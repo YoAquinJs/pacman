@@ -1,3 +1,5 @@
+local gpio = require("periphery").GPIO
+
 Utils = {
     maxVolume = .7,
     sleeptTime = 0,
@@ -6,6 +8,7 @@ Utils = {
     gridXOffset = nil,
     images = {},
     audios = {},
+    buttons = {{"left",20}, {"right",21}, {"up",22}, {"down",23}, {"start",24}},
     input = {
         up=false,
         down=false,
@@ -53,12 +56,21 @@ Utils.update = function (self)
         end
     end
 
-    --Raspberry Pi input calculation TODO
+    local handle, i = assert(io.popen("raspi-gpio get "..self.buttonsStr)), 1
+
     self.input.up    = engine.keyboard.isDown("w")
     self.input.left  = engine.keyboard.isDown("a")
     self.input.down  = engine.keyboard.isDown("s")
     self.input.right = engine.keyboard.isDown("d")
     --self.input.start = engine.keyboard.isDown("space")
+    for line in handle:lines() do --Char 16 is the value of the button value
+        if self.buttons[i][1] ~= "start" or self.images.start ~= true then
+            self.input[self.buttons[i][1]] = line[16] == "1"
+        end
+        i = i + 1
+    end
+
+    handle:close()
 end
 
 Utils.audio = function (self, audio, play, inloop, volume, pitch)
@@ -192,6 +204,13 @@ Utils.start = function (self)
     end
 
     io.close(assetsConfigFile)
+
+    self.buttonsStr = ""
+    for _, pair in ipairs(self.buttons) do
+        if self.buttonsStr ~= "" then self.buttonsStr = self.buttonsStr.."," end
+        self.buttonsStr = self.buttonsStr..pair[2]
+    end
+    io.popen("raspi-gpio set "..self.buttonsStr.." ip pd")
 end
 
 return Utils
