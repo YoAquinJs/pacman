@@ -1,5 +1,3 @@
-local gpio = require("periphery").GPIO
-
 Utils = {
     maxVolume = .7,
     sleeptTime = 0,
