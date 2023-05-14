@@ -115,7 +115,7 @@ Grid.LoadGrid = function (gameControl, tilePX)
     local mapStr = mapFile:read("a")
 
     if gameControl.isFullscreen == true then
-        local width, height = engine.window.getDesktopDimensions(2)
+        local width, height = engine.window.getDesktopDimensions(1)
         grid.getCoordOffset = {1,1}
         local gridHeight = 0        
         for _ in io.lines("./datafiles/mapdata") do
