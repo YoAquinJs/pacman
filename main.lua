@@ -20,12 +20,12 @@ end
 function engine.update(dt)
     Utils:update()
     GameControl:update(dt, Utils:getTime())
-    Utils.input.start = false
+    --Utils.input.start = false
 end
 
-function engine.keyreleased(key)
-    Utils.input.start = key == "space"
-end
+--function engine.keyreleased(key)
+--    Utils.input.start = key == "space"
+--end
 
 function engine.draw()
     GameControl:draw(Utils:getTime())
@@ -37,6 +37,7 @@ function engine.quit()
         table.insert(GameControl.highscores, {GameControl.tag, GameControl.score})
         GameControl:serializeScores()
     end
+    Utils.inputHandler:close()
 end
 
 --TODO gpio input

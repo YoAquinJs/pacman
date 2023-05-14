@@ -7,6 +7,7 @@ Utils = {
     images = {},
     audios = {},
     buttons = {{"left",20}, {"right",21}, {"up",22}, {"down",23}, {"start",24}},
+    inputHandler = io.popen("ls"),
     input = {
         up=false,
         down=false,
@@ -54,21 +55,21 @@ Utils.update = function (self)
         end
     end
 
-    local handle, i = assert(io.popen("raspi-gpio get "..self.buttonsStr)), 1
+    self.inputHandler:close()
+    self.inputHandler = io.popen("raspi-gpio get "..self.buttonsStr)
 
-    self.input.up    = engine.keyboard.isDown("w")
-    self.input.left  = engine.keyboard.isDown("a")
-    self.input.down  = engine.keyboard.isDown("s")
-    self.input.right = engine.keyboard.isDown("d")
+    --self.input.up    = engine.keyboard.isDown("w")
+    --self.input.left  = engine.keyboard.isDown("a")
+    --self.input.down  = engine.keyboard.isDown("s")
+    --self.input.right = engine.keyboard.isDown("d")
     --self.input.start = engine.keyboard.isDown("space")
-    for line in handle:lines() do --Char 16 is the value of the button value
+    local i=1
+    for line in self.inputHandler:lines() do --Char 16 is the value of the button value
         if self.buttons[i][1] ~= "start" or self.input.start ~= true then
             self.input[self.buttons[i][1]] = line:sub(16,16) == "1"
         end
         i = i + 1
     end
-
-    handle:close()
 end
 
 Utils.audio = function (self, audio, play, inloop, volume, pitch)
