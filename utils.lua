@@ -62,8 +62,8 @@ Utils.update = function (self)
     self.input.right = engine.keyboard.isDown("d")
     --self.input.start = engine.keyboard.isDown("space")
     for line in handle:lines() do --Char 16 is the value of the button value
-        if self.buttons[i][1] ~= "start" or self.images.start ~= true then
-            self.input[self.buttons[i][1]] = line[16] == "1"
+        if self.buttons[i][1] ~= "start" or self.input.start ~= true then
+            self.input[self.buttons[i][1]] = line:sub(16,16) == "1"
         end
         i = i + 1
     end
