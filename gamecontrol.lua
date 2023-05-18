@@ -463,7 +463,7 @@ GameControl.LoadGameControl = function ()
                 if Utils.input.start == true then
                     for _, pair in ipairs(self.highscores) do
                         if pair[1] == self:getNameTag() then
-                            Utils:play("frigthtenedstart")
+                            Utils:audio("frigthtenedstart")
                             return
                         end
                     end
