@@ -1,4 +1,4 @@
-# Retro Pacman (In Development)
+# Retro Pacman
 
 Pacman is a classic arcade game where the player controls a character to eat all the food on a map while avoiding ghosts. This repository contains an implementation of the Pacman game in Lua with the Love2D framework, which can be played on desktop (Linux and Windows).
 
