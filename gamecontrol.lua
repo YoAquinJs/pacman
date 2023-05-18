@@ -463,12 +463,13 @@ GameControl.LoadGameControl = function ()
                 if Utils.input.start == true then
                     for _, pair in ipairs(self.highscores) do
                         if pair[1] == self:getNameTag() then
-                            Utils:muteWhile("frigthtenedstart", 1)
+                            Utils:play("frigthtenedstart")
                             return
                         end
                     end
                     self.tag = self:getNameTag()
                     self:startLevel(1, false)
+                    Utils:cancelAllActions()
                 end
             end
         end

@@ -185,6 +185,12 @@ Utils.drawText = function (self, text, x, y, scale, color, centerd, shadowColor)
     end
 end
 
+Utils.stopAllActions = function (self)
+    for key, _ in pairs(self.programmedActions) do
+        self.programmedActions[key] = nil
+    end
+end
+
 Utils.start = function (self)
     local assetsConfigFile = assert(io.open("./datafiles/assetsdata", "r"))
 

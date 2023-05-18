@@ -19,8 +19,8 @@ end
 
 function engine.update(dt)
     Utils:update()
-    GameControl:update(dt, Utils:getTime())
-    --Utils.input.start = false
+    GameControl:update(dt, Utils:getTjime())
+    Utils.input.start = false
 end
 
 --function engine.keyreleased(key)
