@@ -128,6 +128,12 @@ Utils.draw = function (self, img, x, y, scale)
     engine.graphics.draw(self.images[img], x, y, 0, scale, scale)
 end
 
+Utils.stopAllActions = function (self)
+    for key, _ in pairs(self.programmedActions) do
+        self.programmedActions[key] = nil
+    end
+end
+
 Utils.drawText = function (self, text, x, y, scale, color, centerd, shadowColor)
     text = string.lower(text)
 
