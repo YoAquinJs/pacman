@@ -19,7 +19,7 @@ end
 
 function engine.update(dt)
     Utils:update()
-    GameControl:update(dt, Utils:getTjime())
+    GameControl:update(dt, Utils:getTime())
     Utils.input.start = false
 end
 
