@@ -469,7 +469,7 @@ GameControl.LoadGameControl = function ()
                     end
                     self.tag = self:getNameTag()
                     self:startLevel(1, false)
-                    Utils:cancelAllActions()
+                    Utils:stopAllActions()
                 end
             end
         end
