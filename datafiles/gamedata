@@ -5,7 +5,7 @@ propMaxTime:10
 maxVelocity:8
 eatenVelocity:14
 maxHighscores:5
-screenSize:15
+screenSize:25
 defaultNametag:AAAAA
 pacmanStartDirection:-1,0
 blinkyStartDirection:-1,0

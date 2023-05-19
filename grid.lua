@@ -122,7 +122,7 @@ Grid.LoadGrid = function (gameControl, tilePX)
             gridHeight = gridHeight + 1
         end
         grid.tilePX = height / gridHeight
-
+        
         for i = 1, #mapStr do
             if mapStr:sub(i+1,i+1) == "\n" then
                 if Utils.gridXOffset == nil then
@@ -284,6 +284,10 @@ Grid.LoadGrid = function (gameControl, tilePX)
     grid.TILES[grid.tunnels[2][1]][grid.tunnels[2][2]].tunnelExit = {grid.tunnels[1][1], grid.tunnels[1][2]}
 
     Utils.screenMiddle = ((grid.tilePX*#grid.TILES)/2)
+    if gameControl.isFullscreen == false then
+        Utils.screenMiddle = Utils.screenMiddle - (grid.tilePX*2)
+    end
+
     return grid
 end
 
