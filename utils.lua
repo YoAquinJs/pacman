@@ -3,6 +3,7 @@ Utils = {
     sleeptTime = 0,
     programmedActions = {},
     mute = false,
+    gridXOffset = nil,
     images = {},
     audios = {},
     input = {
@@ -57,7 +58,6 @@ Utils.update = function (self)
     self.input.left  = engine.keyboard.isDown("a")
     self.input.down  = engine.keyboard.isDown("s")
     self.input.right = engine.keyboard.isDown("d")
-    --self.input.start = engine.keyboard.isDown("space")
 end
 
 Utils.audio = function (self, audio, play, inloop, volume, pitch)
@@ -125,7 +125,7 @@ Utils.getImgSize = function (self, img)
 end
 
 Utils.draw = function (self, img, x, y, scale)
-    engine.graphics.draw(self.images[img], x, y, 0, scale, scale)
+    engine.graphics.draw(self.images[img], x+ self.gridXOffset, y, 0, scale, scale)
 end
 
 Utils.stopAllActions = function (self)

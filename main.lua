@@ -11,9 +11,8 @@ function engine.load()
 
     engine.graphics.setBackgroundColor(0,0,0) --window Background Color
     engine.window.setMode(#GameControl.grid.TILES*GameControl.grid.tilePX - (GameControl.grid.tilePX*4),
-    #GameControl.grid.TILES[1]*GameControl.grid.tilePX - GameControl.grid.tilePX, {display = 2, fullscreen=false, centered=true})
+    #GameControl.grid.TILES[1]*GameControl.grid.tilePX - GameControl.grid.tilePX, {display = GameControl.display, fullscreen=GameControl.isFullscreen, centered=true})
 
-    print(love.system.getOS())
     Utils.sleeptTime = engine.timer.getTime()
 end
 

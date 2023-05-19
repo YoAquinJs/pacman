@@ -253,11 +253,11 @@ GameControl.LoadGameControl = function ()
 
             Utils:sleep(1)
             if self.lifes == 0 then
-                self.drawables["gameover"] = {text="GAME OVER", coordinates={engine.graphics.getWidth()/2, self.gameOverLabel[2]}, color={1,0,0}, scale=3, isPopup=""}
+                self.drawables["gameover"] = {text="GAME OVER", coordinates={Utils.screenMiddle, self.gameOverLabel[2]}, color={1,0,0}, scale=3, isPopup=""}
                 Utils:programAction(1.5, function ()
                     self.currentLevelInfo.level= 0
                     Utils:programAction(1.5, function ()
-                        self.drawables["pressanykey"] = {text="PRESS ANY KEY TO CONTINUE", coordinates={engine.graphics.getWidth()/2, self.pressAnyKeyLabel[2]}, color={1,1,1}, scale=2, isPopup=""}
+                        self.drawables["pressanykey"] = {text="PRESS ANY KEY TO CONTINUE", coordinates={Utils.screenMiddle, self.pressAnyKeyLabel[2]}, color={1,1,1}, scale=2, isPopup=""}
                     end, "pressanykeyTrigger")
                 end)
                 table.insert(self.highscores, {self.tag, self.score})
@@ -476,10 +476,10 @@ GameControl.LoadGameControl = function ()
 
     gameControl.draw = function (self, time)
         if self.currentLevelInfo.level > 0 then
-            Utils:drawText("HIGH SCORE", engine.graphics.getWidth()/2, self.highScoreLabelCoords[2], self.grid.tilePX*(2.6/16), {1,1,1}, true)
+            Utils:drawText("HIGH SCORE", Utils.screenMiddle, self.highScoreLabelCoords[2], self.grid.tilePX*(2.6/16), {1,1,1}, true)
             local printScore = self.highscores[1][2]
             if self.reachHighscore == true then printScore = self.score end
-            Utils:drawText(printScore, engine.graphics.getWidth()/2, self.highScoreValueCoords[2], self.grid.tilePX*(2.6/16), {1,1,1}, true)
+            Utils:drawText(printScore, Utils.screenMiddle, self.highScoreValueCoords[2], self.grid.tilePX*(2.6/16), {1,1,1}, true)
             Utils:drawText(tostring(self.score), self.scoreCounterCoords[1]-(self.grid.tilePX*(#tostring(self.score))), self.scoreCounterCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
             if self.tag ~= nil then
                 Utils:drawText(self.tag, self.nameTagCoords[1], self.nameTagCoords[2], self.grid.tilePX*(2.6/16), {1,1,1})
@@ -489,9 +489,9 @@ GameControl.LoadGameControl = function ()
                 Utils:draw(img, self.lifesCounterCoords[1]+(i*self.grid.tilePX*2)-(self.grid.tilePX), self.lifesCounterCoords[2]-(self.grid.tilePX), scale)
             end
 
-            local lifes = self.currentLevelInfo.level-1
-            if lifes > 8 then lifes = 8 end
-            for i=1, lifes do
+            local level = self.currentLevelInfo.level
+            if level > 8 then level = 8 end
+            for i=1, level do
                 local scale, sprite = self.grid.tilePX*(1.8/16), self.props[i][1]
 
                 if self.currentLevelInfo.level> 8 then
@@ -518,9 +518,9 @@ GameControl.LoadGameControl = function ()
             self.ghosts.pinky:draw(time)
         elseif self.currentLevelInfo.level< 0 then
             local img, scale, imgSize = "title", self.grid.tilePX*(2.2/16), Utils:getImgSize("title")
-            Utils:draw(img, (engine.graphics.getWidth() - (imgSize*scale))/2,  40*(self.grid.tilePX/16), scale)
+            Utils:draw(img, Utils.screenMiddle - (imgSize*scale/2),  40*(self.grid.tilePX/16), scale)
 
-            Utils:drawText("PLAYER", engine.graphics.getWidth()/2, 160*(self.grid.tilePX/16), self.grid.tilePX*(6/16), {1,1,0}, true)
+            Utils:drawText("PLAYER", Utils.screenMiddle, 160*(self.grid.tilePX/16), self.grid.tilePX*(6/16), {1,1,0}, true)
             for i, char in ipairs(self.nameTag[2]) do
                 local color, scale, adjust = self.nameTagColor, self.grid.tilePX*(8/16), 0
                 if i == self.nameTag[1] then
@@ -531,17 +531,17 @@ GameControl.LoadGameControl = function ()
                         if color[2] == .6 then color[1] = 1 end
                     end
                 end
-                Utils:drawText(string.char(char), engine.graphics.getWidth()/2 + (9*self.grid.tilePX*(6/16)*(i-3)), (220*(self.grid.tilePX/16)) - adjust, scale, {1,1,0}, true, color)
+                Utils:drawText(string.char(char), Utils.screenMiddle + (9*self.grid.tilePX*(6/16)*(i-3)), (220*(self.grid.tilePX/16)) - adjust, scale, {1,1,0}, true, color)
             end
 
-            Utils:drawText("HIGHSCORES", engine.graphics.getWidth()/2, 305*(self.grid.tilePX/16), self.grid.tilePX*(6.5/16), {1,1,1}, true)
+            Utils:drawText("HIGHSCORES", Utils.screenMiddle, 305*(self.grid.tilePX/16), self.grid.tilePX*(6.5/16), {1,1,1}, true)
             for i, pair in ipairs(self.highscores) do
                 local scoreStr = ""
                 for _=1, 8-#tostring(pair[2]) do
                     scoreStr = scoreStr.." "
                 end
                 scoreStr = scoreStr..tostring(pair[2])
-                Utils:drawText(pair[1].." / "..scoreStr, engine.graphics.getWidth()/2, (340 + (i*35))*(self.grid.tilePX/16), self.grid.tilePX*(3.7/16), {1,1,1}, true)
+                Utils:drawText(pair[1].." / "..scoreStr, Utils.screenMiddle, (340 + (i*35))*(self.grid.tilePX/16), self.grid.tilePX*(3.7/16), {1,1,1}, true)
             end
         end
 
@@ -625,14 +625,14 @@ GameControl.LoadGameControl = function ()
                 gameControl.nameTag[2][i] = char
                 char = 65
             end
+        elseif constant == "fullscreen" then
+            gameControl.isFullscreen = value == "true"
         elseif constant == "pacmanStartDirection" then
             local coma = string.find(value, ",")
             gameControl.pacmanDir = {tonumber(value:sub(1, coma-1)), tonumber(value:sub(coma+1, #value))}
         elseif constant == "blinkyStartDirection" then
             local coma = string.find(value, ",")
             gameControl.blinkyDir = {tonumber(value:sub(1, coma-1)), tonumber(value:sub(coma+1, #value))}
-        elseif constant == "screenSize" then
-            gameControl.grid =  Grid.LoadGrid(gameControl, tonumber(value))
         elseif constant == "props" then
             local i = 1
             for propScore in string.gmatch(value, "([^,]+)") do
@@ -650,6 +650,8 @@ GameControl.LoadGameControl = function ()
     if gameControl.startLifes > 6 then gameControl.startLifes = 6 end
 
     io.close(gameDataFile)
+
+    gameControl.grid = Grid.LoadGrid(gameControl, gameControl.screenSize)
 
     return gameControl
 end

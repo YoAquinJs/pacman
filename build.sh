@@ -38,4 +38,3 @@ while IFS= read -r -d $'\0' file; do
 done < <(find "$sourceDir" -type f -print0)
 
 zip -r "$destinationZip" "${filesToArchive[@]/$sourceDir\//}"
-
