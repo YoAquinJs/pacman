@@ -1,6 +1,6 @@
 startLifes:3
-fullscreen:true
-display:1
+fullscreen:false
+display:2
 propMaxTime:10
 maxVelocity:8
 eatenVelocity:14
