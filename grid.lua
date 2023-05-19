@@ -125,7 +125,7 @@ Grid.LoadGrid = function (gameControl, tilePX)
 
         for i = 1, #mapStr do
             if mapStr:sub(i+1,i+1) == "\n" then
-                if Utils.gridXOffset == nil then
+                if Utils.gridXOffset == 0 then
                     Utils.gridXOffset = (width - (grid.tilePX*i))/2
                     break
                 end
