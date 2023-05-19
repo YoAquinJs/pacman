@@ -468,8 +468,8 @@ GameControl.LoadGameControl = function ()
                         end
                     end
                     self.tag = self:getNameTag()
-                    self:startLevel(1, false)
                     Utils:stopAllActions()
+                    self:startLevel(1, false)
                 end
             end
         end
