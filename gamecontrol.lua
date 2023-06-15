@@ -490,9 +490,9 @@ GameControl.LoadGameControl = function ()
                 Utils:draw(img, self.lifesCounterCoords[1]+(i*self.grid.tilePX*2)-(self.grid.tilePX), self.lifesCounterCoords[2]-(self.grid.tilePX), scale)
             end
 
-            local lifes = self.currentLevelInfo.level-1
-            if lifes > 8 then lifes = 8 end
-            for i=1, lifes do
+            local level = self.currentLevelInfo.level
+            if level > 8 then level = 8 end
+            for i=1, level do
                 local scale, sprite = self.grid.tilePX*(1.8/16), self.props[i][1]
 
                 if self.currentLevelInfo.level> 8 then
