@@ -42,14 +42,13 @@ cd pacman
 </div>
 
 - For Linux:
-    * enable execution for bash script running 
-    * run the build script in the root folder:
+    * Download the [love-build bash script](https://github.com/YoAquinJs/bash-utils/blob/main/scripts/love-build.sh) 
 
 <div style="font-size: 12px">
 
 ```
-chmod +x build.sh
-./build.sh
+chmod +x love-build.sh
+./love-build.sh -gamename pacman
 ```
 
 </div>
